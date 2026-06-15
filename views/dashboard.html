@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - Contrak</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="/" class="logo">📄 Contrak</a>
+      <button class="nav-toggle" aria-label="Open menu" aria-expanded="false">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+      <ul class="nav-links">
+        <li><a href="/dashboard">Dashboard</a></li>
+        <li><a href="/ebooks">Ebooks</a></li>
+        <li><a href="/pricing">Pricing</a></li>
+        <li><span id="userPlan" class="plan-badge basic">BASIC</span></li>
+        <li><button id="logoutBtn" class="btn btn-outline">Log out</button></li>
+      </ul>
+    </nav>
+  </header>
+
+  <div class="container">
+    <div class="dashboard-header">
+      <h1>Dashboard</h1>
+      <a href="/contracts/new" class="btn btn-primary">+ New contract</a>
+    </div>
+
+    <div id="alertContainer"></div>
+
+    <!-- Stats -->
+    <div class="dashboard-stats">
+      <div class="stat-card">
+        <h3>Contracts created</h3>
+        <div class="value" id="contractsCount">0</div>
+      </div>
+      <div class="stat-card">
+        <h3>Current plan</h3>
+        <div class="value" id="planValue" style="font-size: 1.5rem;">BASIC</div>
+      </div>
+      <div class="stat-card">
+        <h3>Limit</h3>
+        <div class="value" id="limitValue">5/5</div>
+      </div>
+    </div>
+
+    <!-- Contracts list -->
+    <div class="contracts-list">
+      <div style="padding: 1.5rem; border-bottom: 1px solid #eee;">
+        <h2>My contracts</h2>
+      </div>
+      <div id="contractsList">
+        <div class="loading">
+          <div class="spinner"></div>
+          <p>Loading...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      const nav = document.querySelector('header nav');
+      if (!nav) return;
+      const toggle = nav.querySelector('.nav-toggle');
+      const links = nav.querySelector('.nav-links');
+      if (!toggle || !links) return;
+      toggle.addEventListener('click', function() {
+        const isOpen = links.classList.toggle('nav-links--open');
+        toggle.classList.toggle('nav-toggle--open', isOpen);
+        toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      });
+    })();
+
+    let currentUser = null;
+
+    // Check authentication
+    async function checkAuth() {
+      try {
+        const response = await fetch('/api/auth/me', {
+          credentials: 'include'
+        });
+
+        if (!response.ok) {
+          window.location.href = '/login';
+          return;
+        }
+
+        const data = await response.json();
+        currentUser = data.user;
+        
+        // Display plan
+        const planBadge = document.getElementById('userPlan');
+        const planValue = document.getElementById('planValue');
+        const limitValue = document.getElementById('limitValue');
+        
+        if (currentUser.plan === 'pro') {
+          planBadge.textContent = 'PRO';
+          planBadge.className = 'plan-badge pro';
+          planValue.textContent = 'PRO';
+          limitValue.textContent = 'Illimité';
+        } else {
+          planBadge.textContent = 'BASIC';
+          planBadge.className = 'plan-badge basic';
+          planValue.textContent = 'BASIC';
+        }
+
+        loadContracts();
+      } catch (error) {
+        console.error('Erreur auth:', error);
+        window.location.href = '/login';
+      }
+    }
+
+    // Charger les contrats
+    async function loadContracts() {
+      try {
+        const response = await fetch('/api/contracts', {
+          credentials: 'include'
+        });
+
+        if (!response.ok) {
+          let serverMsg = '';
+          try {
+            const errBody = await response.json();
+            serverMsg = errBody?.error || response.statusText;
+          } catch (_) {}
+          throw new Error(serverMsg || 'Error while loading contracts');
+        }
+
+        const data = await response.json();
+        const contracts = data.contracts || [];
+
+        // Update counter
+        document.getElementById('contractsCount').textContent = contracts.length;
+
+        // Update limit if BASIC
+        if (currentUser.plan === 'basic') {
+          document.getElementById('limitValue').textContent = `${contracts.length}/5`;
+        }
+
+        // Display contracts
+        const container = document.getElementById('contractsList');
+        
+        if (contracts.length === 0) {
+          container.innerHTML = `
+            <div class="empty-state">
+              <p>📄</p>
+              <h3>No contracts yet</h3>
+              <p>Create your first contract now.</p>
+              <a href="/contracts/new" class="btn btn-primary" style="margin-top: 1rem;">Create a contract</a>
+            </div>
+          `;
+        } else {
+          container.innerHTML = contracts.map(contract => `
+            <div class="contract-item">
+              <div class="contract-info">
+                <h4>Service agreement</h4>
+                <p><strong>Client:</strong> ${contract.client?.nom || 'N/A'}</p>
+                <p><strong>Amount:</strong> ${contract.price || 0} ${contract.currency || 'EUR'}</p>
+                <p style="color: #999; font-size: 0.85rem;">Created on ${new Date(contract.createdAt || Date.now()).toLocaleDateString('en-GB')}</p>
+              </div>
+              <div class="contract-actions">
+                <a href="/api/contracts/${contract.id}/preview" class="btn btn-small btn-outline" target="_blank">Preview</a>
+                <a href="/api/contracts/${contract.id}/pdf" class="btn btn-small btn-primary" download>Download PDF</a>
+              </div>
+            </div>
+          `).join('');
+        }
+      } catch (error) {
+        console.error('Error loading contracts:', error);
+        document.getElementById('contractsList').innerHTML = `
+          <div class="alert alert-error">${error.message || 'Error while loading contracts'}</div>
+        `;
+      }
+    }
+
+    // Logout
+    document.getElementById('logoutBtn').addEventListener('click', async function() {
+      try {
+        await fetch('/api/auth/logout', {
+          method: 'POST',
+          credentials: 'include'
+        });
+        window.location.href = '/';
+      } catch (error) {
+        console.error('Error during logout:', error);
+      }
+    });
+
+    // Check URL parameters (upgrade success)
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('upgraded') === 'true') {
+      showAlert('success', 'Congrats! You are now PRO 🎉');
+    }
+
+    function showAlert(type, message) {
+      const container = document.getElementById('alertContainer');
+      container.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+    }
+
+    checkAuth();
+  </script>
+</body>
+</html>

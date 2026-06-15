@@ -1,0 +1,959 @@
+/*
+ * RÉINITIALISATION CSS ET STYLES DE BASE
+ * Ce fichier CSS définit les styles pour l'application web Contrak.
+ * Nous commençons par une réinitialisation CSS pour uniformiser l'apparence
+ * sur tous les navigateurs, puis définissons les styles de base pour le corps.
+ */
+
+/* Réinitialisation universelle : supprime les marges et paddings par défaut */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box; /* Inclut padding et border dans la largeur/hauteur totale */
+}
+
+/* Styles de base pour le corps de la page */
+body {
+  /* Police système moderne pour une meilleure performance et lisibilité */
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  line-height: 1.6; /* Espacement des lignes pour une meilleure lisibilité */
+  color: #111827; /* Couleur de texte principale (gris foncé) */
+  background-color: #FFFFFF; /* Fond blanc pour le thème clair */
+}
+
+/*
+ * STYLES POUR L'EN-TÊTE ET LA NAVIGATION
+ * Cette section définit l'apparence de la barre de navigation principale.
+ * L'en-tête est positionné de manière fixe en haut de la page pour une navigation persistante.
+ */
+
+/* Conteneur principal de l'en-tête avec fond blanc et ombre subtile */
+header {
+  background: #ffffff; /* Fond blanc pour contraste avec le contenu sombre */
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06); /* Ombre légère pour séparation visuelle */
+  position: sticky; /* Position fixe qui reste visible lors du défilement */
+  top: 0; /* Collé en haut de la fenêtre */
+  z-index: 100; /* S'assure que l'en-tête reste au-dessus du contenu */
+}
+
+/* Conteneur de navigation avec largeur maximale et centrage */
+nav {
+  max-width: 1200px; /* Largeur maximale pour éviter l'étirement sur grands écrans */
+  margin: 0 auto; /* Centrage horizontal automatique */
+  padding: 1rem 2rem; /* Espacement interne (haut/bas: 1rem, gauche/droite: 2rem) */
+  display: flex; /* Utilise Flexbox pour l'alignement */
+  justify-content: space-between; /* Logo à gauche, liens à droite */
+  align-items: center; /* Alignement vertical centré */
+  min-height: 64px; /* Hauteur minimale pour cohérence */
+}
+
+/* Style du logo dans la navigation */
+.logo {
+  font-size: 1.5rem; /* Taille de police plus grande pour visibilité */
+  font-weight: bold; /* Police grasse pour mettre en évidence */
+  color: #000000; /* Couleur noire pour contraste */
+  text-decoration: none; /* Supprime le soulignement par défaut des liens */
+}
+
+/* Liste des liens de navigation */
+.nav-links {
+  display: flex; /* Disposition horizontale des liens */
+  gap: 2rem; /* Espacement de 2rem entre chaque lien */
+  list-style: none; /* Supprime les puces de liste par défaut */
+  align-items: center; /* Alignement vertical centré */
+}
+
+.nav-toggle {
+  display: none;
+  border: none;
+  background: transparent;
+  padding: 0.25rem;
+  cursor: pointer;
+  margin-left: 1rem;
+}
+
+.nav-toggle span {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background: #0b0c0f;
+  border-radius: 9999px;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.nav-toggle span + span {
+  margin-top: 4px;
+}
+
+.nav-toggle.nav-toggle--open span:nth-child(1) {
+  transform: translateY(6px) rotate(45deg);
+}
+
+.nav-toggle.nav-toggle--open span:nth-child(2) {
+  opacity: 0;
+}
+
+.nav-toggle.nav-toggle--open span:nth-child(3) {
+  transform: translateY(-6px) rotate(-45deg);
+}
+
+/* Style des liens individuels dans la navigation */
+.nav-links a {
+  text-decoration: none; /* Supprime le soulignement */
+  color: #0b0c0f; /* Couleur sombre pour le texte */
+  font-weight: 500; /* Poids de police semi-gras */
+  transition: color 0.3s; /* Transition douce pour les changements de couleur */
+  position: relative; /* Position relative pour le pseudo-élément ::after */
+  display: inline-flex; /* Flexbox pour aligner icônes et texte */
+  align-items: center; /* Alignement vertical centré */
+  padding: 0.5rem 0; /* Espacement vertical pour zone de clic */
+}
+
+/* État hover des liens de navigation : changement de couleur */
+.nav-links a:hover {
+  color: #2563EB;
+}
+
+/* Pseudo-élément pour l'effet de soulignement animé */
+.nav-links a::after {
+  content: ""; /* Contenu vide pour créer la ligne */
+  position: absolute; /* Position absolue par rapport au lien */
+  left: 0; /* Aligné à gauche */
+  bottom: -4px; /* Positionné légèrement en dessous du texte */
+  width: 0%; /* Largeur initiale à 0% pour animation */
+  height: 2px; /* Épaisseur de la ligne */
+  background: #2563EB;
+  transition: width 0.25s ease; /* Animation de largeur avec easing */
+}
+
+/* Animation de la ligne au survol */
+.nav-links a:hover::after {
+  width: 100%; /* La ligne s'étend sur toute la largeur du lien */
+}
+
+/*
+ * STYLES POUR LES BOUTONS D'APPEL À L'ACTION (CTA)
+ * Ces boutons sont conçus pour attirer l'attention et encourager l'action utilisateur.
+ * Ils utilisent des effets visuels avancés comme des dégradés animés et des ombres.
+ */
+
+/* Bouton CTA principal avec dégradé animé et effets sophistiqués */
+.btn-cta {
+  background: radial-gradient(circle at 0% 0%, #2563EB 0, #111827 45%, #000000 100%);
+  color: #ffffff;
+  padding: 12px 26px;
+  border-radius: 9999px;
+  font-weight: 600;
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.35);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease, background-position 0.3s ease;
+  border: 1px solid rgba(15,23,42,0.9);
+  position: relative; /* Pour positionner les pseudo-éléments */
+  overflow: hidden; /* Cache les débordements des effets */
+  display: inline-flex; /* Flexbox pour aligner icônes et texte */
+  align-items: center; /* Alignement vertical centré */
+  gap: 8px; /* Espacement entre icônes et texte */
+  background-size: 200% 200%; /* Taille pour animation du dégradé */
+  background-position: 0% 50%; /* Position initiale du dégradé */
+}
+
+/* État hover : élévation et animation du dégradé */
+.btn-cta:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.55);
+  filter: brightness(1.04);
+  background-position: 100% 50%;
+}
+
+/* État actif : retour à la position normale avec échelle réduite */
+.btn-cta:active {
+  transform: translateY(0) scale(0.97);
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.35);
+}
+
+/* État désactivé : opacité réduite et curseur d'interdiction */
+.btn-cta:disabled {
+  opacity: 0.6; /* Rendu semi-transparent */
+  cursor: not-allowed; /* Curseur indiquant l'état désactivé */
+}
+
+/* État focus : anneau de focus pour accessibilité */
+.btn-cta:focus {
+  outline: none; /* Supprime l'outline par défaut */
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.4), 0 12px 30px rgba(15,23,42,0.5);
+}
+
+/* Pseudo-élément pour l'effet de lumière balayant */
+.btn-cta::after {
+  content: ""; /* Contenu vide pour l'effet visuel */
+  position: absolute; /* Position absolue dans le bouton */
+  top: 0; /* Aligné en haut */
+  left: -120%; /* Positionné à gauche hors du bouton */
+  width: 40%; /* Largeur de l'effet lumineux */
+  height: 100%; /* Hauteur complète du bouton */
+  background: linear-gradient(120deg, rgba(255,255,255,0.0) 0%, rgba(255,255,255,0.35) 50%, rgba(255,255,255,0.0) 100%); /* Dégradé lumineux */
+  transform: skewX(-15deg); /* Inclinaison pour effet dynamique */
+  transition: left 0.45s ease; /* Animation de glissement */
+}
+
+/* Animation de la lumière au survol */
+.btn-cta:hover::after {
+  left: 120%; /* La lumière traverse le bouton */
+}
+
+/* Style des icônes dans le bouton CTA */
+.btn-cta .icon {
+  display: inline-block; /* Affichage en ligne */
+  transition: transform 0.2s ease; /* Transition pour l'animation */
+}
+
+/* Animation de l'icône au survol */
+.btn-cta:hover .icon {
+  transform: translateX(2px); /* Déplacement horizontal subtil */
+}
+
+/* Variante pleine largeur du bouton CTA */
+.btn-cta.block {
+  width: 100%; /* Largeur complète du conteneur parent */
+  justify-content: center; /* Centrage du contenu */
+}
+
+/* Media query pour écrans mobiles : ajustement du padding */
+@media (max-width: 640px) {
+  .btn-cta {
+    padding: 14px 26px; /* Padding légèrement augmenté pour faciliter le toucher */
+  }
+}
+
+/*
+ * STYLES GÉNÉRIQUES POUR LES BOUTONS
+ * Classes de base pour tous les boutons avec effets d'interaction communs.
+ * Ces styles définissent l'apparence de base et les comportements au survol.
+ */
+
+/* Classe de base pour tous les boutons */
+.btn {
+  padding: 12px 24px; /* Espacement interne horizontal et vertical */
+  border: 1px solid transparent; /* Bordure transparente par défaut */
+  border-radius: 9999px; /* Bordures complètement arrondies */
+  cursor: pointer; /* Curseur pointeur pour indiquer l'interactivité */
+  font-size: 1rem; /* Taille de police standard */
+  text-decoration: none; /* Supprime le soulignement pour les liens */
+  display: inline-flex; /* Utilise Flexbox pour l'alignement interne */
+  align-items: center; /* Alignement vertical centré du contenu */
+  gap: 8px; /* Espacement entre icônes et texte */
+  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease, background-position 0.3s ease; /* Transitions fluides */
+  font-weight: 600; /* Police semi-grasse pour importance */
+  will-change: transform, box-shadow; /* Optimisation des performances pour les animations */
+}
+
+/* Variante bouton primaire avec dégradé bleu */
+.btn-primary {
+  background: linear-gradient(90deg, #000000, #111827);
+  color: #ffffff;
+  border-color: rgba(0, 0, 0, 0.9);
+  background-size: 200% 200%; /* Taille pour animation du dégradé */
+  background-position: 0% 50%; /* Position initiale du dégradé */
+  position: relative; /* Pour positionner les pseudo-éléments */
+  overflow: hidden; /* Cache les débordements des effets */
+}
+
+/* État hover du bouton primaire : animation du dégradé et élévation */
+.btn-primary:hover {
+  background-position: 100% 50%; /* Déplacement du dégradé */
+  transform: translateY(-2px) scale(1.02); /* Translation verticale et échelle */
+  box-shadow: 0 12px 26px rgba(26, 115, 232, 0.45); /* Ombre portée bleue */
+}
+
+/* État actif : retour à la position normale */
+.btn-primary:active {
+  transform: translateY(0) scale(0.98); /* Simulation de pression */
+  box-shadow: 0 6px 16px rgba(26, 115, 232, 0.35); /* Ombre réduite */
+}
+
+/* Pseudo-élément pour l'effet de lumière balayant */
+.btn-primary::after {
+  content: ""; /* Contenu vide pour l'effet visuel */
+  position: absolute; /* Position absolue dans le bouton */
+  top: 0; /* Aligné en haut */
+  left: -120%; /* Positionné à gauche hors du bouton */
+  width: 40%; /* Largeur de l'effet lumineux */
+  height: 100%; /* Hauteur complète du bouton */
+  background: linear-gradient(120deg, rgba(255,255,255,0.0) 0%, rgba(255,255,255,0.35) 50%, rgba(255,255,255,0.0) 100%); /* Dégradé lumineux */
+  transform: skewX(-15deg); /* Inclinaison pour effet dynamique */
+  transition: left 0.45s ease; /* Animation de glissement */
+}
+
+/* Animation de la lumière au survol */
+.btn-primary:hover::after {
+  left: 120%; /* La lumière traverse le bouton */
+}
+
+/* Pseudo-élément pour l'effet de surbrillance radiale */
+.btn-primary::before {
+  content: ""; /* Contenu vide pour l'effet */
+  position: absolute; /* Position absolue */
+  inset: 0; /* Remplit complètement le bouton */
+  background: radial-gradient(1200px 1200px at var(--mx, 50%) var(--my, 50%), rgba(255,255,255,0.08), transparent 35%); /* Dégradé radial */
+  opacity: 0; /* Invisible par défaut */
+  transition: opacity 0.25s ease; /* Transition douce */
+  pointer-events: none; /* N'intercepte pas les événements souris */
+}
+
+/* Activation de l'effet de surbrillance au survol */
+.btn-primary:hover::before {
+  opacity: 1; /* Rend visible au survol */
+}
+
+/* Variante bouton secondaire avec fond semi-transparent */
+.btn-secondary {
+  background: #111827;
+  color: #ffffff;
+  border-color: #111827;
+}
+
+/* État hover du bouton secondaire : augmentation de l'opacité */
+.btn-secondary:hover {
+  background: #000000;
+  transform: translateY(-2px) scale(1.02); /* Légère élévation */
+  box-shadow: 0 10px 20px rgba(15, 23, 42, 0.25);
+}
+
+/* Variante bouton outline avec bordure seulement */
+.btn-outline {
+  background: transparent;
+  border: 1.5px solid #000000;
+  color: #111827;
+}
+
+/* État hover du bouton outline : ajout de fond */
+.btn-outline:hover {
+  background: #000000;
+  color: #ffffff;
+  transform: translateY(-2px) scale(1.02); /* Élévation */
+  box-shadow: 0 10px 20px rgba(15, 23, 42, 0.25);
+}
+
+/*
+ * STYLES POUR LES CONTENEURS ET LA MISE EN PAGE
+ * Ces classes définissent la structure de base et l'espacement du contenu.
+ */
+
+/* Conteneur principal avec largeur maximale et centrage */
+.container {
+  max-width: 1200px; /* Largeur maximale pour éviter l'étirement sur grands écrans */
+  margin: 0 auto; /* Centrage horizontal automatique */
+  padding: 2rem; /* Espacement interne de 2rem sur tous les côtés */
+}
+
+/*
+ * GRILLE DE FONCTIONNALITÉS ET CARTES INTERACTIVES
+ * Système de grille responsive pour afficher les fonctionnalités avec des cartes animées.
+ */
+
+/* Grille responsive pour les fonctionnalités */
+.feature-grid {
+  display: grid; /* Utilise CSS Grid pour la disposition */
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* Colonnes adaptatives minimum 280px */
+  gap: 2rem; /* Espacement de 2rem entre les éléments */
+  margin-top: 3rem; /* Marge supérieure pour séparation */
+}
+
+/* Cartes interactives avec effets visuels avancés */
+.interactive-card {
+  padding: 2rem; /* Espacement interne généreux */
+  border-radius: 16px; /* Bordures arrondies importantes */
+  background: #ffffff;
+  box-shadow: 0 10px 30px rgba(15,23,42,0.08);
+  transition: transform 0.3s ease, box-shadow 0.3s ease; /* Transitions fluides */
+  position: relative; /* Pour positionner les pseudo-éléments */
+  will-change: transform, box-shadow; /* Optimisation des performances */
+}
+
+/* État hover : élévation et ombre renforcée */
+.interactive-card:hover {
+  transform: translateY(-6px) scale(1.02); /* Translation verticale et échelle légère */
+  box-shadow: 0 20px 40px rgba(0,0,0,0.45); /* Ombre plus prononcée */
+}
+
+/* Pseudo-élément pour la bordure dégradée animée */
+.interactive-card::before {
+  content: ""; /* Contenu vide pour l'effet visuel */
+  position: absolute; /* Position absolue */
+  inset: 0; /* Remplit complètement la carte */
+  border-radius: 16px; /* Même arrondi que la carte */
+  padding: 2px; /* Épaisseur de la bordure */
+  background: linear-gradient(135deg, rgba(16,185,129,0.35), rgba(59,130,246,0.35)); /* Dégradé vert-bleu */
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); /* Masque pour effet de bordure */
+  -webkit-mask-composite: xor; /* Composite pour créer l'effet de bordure */
+          mask-composite: exclude; /* Alternative pour Firefox */
+  opacity: 0; /* Invisible par défaut */
+  transition: opacity 0.3s ease; /* Transition douce */
+}
+
+/* Activation de la bordure au survol */
+.interactive-card:hover::before {
+  opacity: 1; /* Rend visible la bordure dégradée */
+}
+
+/* Classe pour les animations de révélation au défilement */
+.reveal {
+  opacity: 0; /* Invisible initialement */
+  transform: translateY(16px); /* Positionnée légèrement en dessous */
+  transition: opacity 0.6s ease, transform 0.6s ease; /* Transition douce */
+}
+
+/* État visible après animation */
+.reveal--visible {
+  opacity: 1; /* Complètement visible */
+  transform: translateY(0); /* Position normale */
+}
+
+/*
+ * SECTION HÉROÏQUE (HERO)
+ * La section principale d'accueil avec un fond dégradé animé et du contenu accrocheur.
+ * Cette section utilise une animation de dégradé pour créer un effet visuel dynamique.
+ */
+
+/* Conteneur principal de la section hero */
+.hero {
+  text-align: center; /* Centrage du texte */
+  padding: 4rem 2rem; /* Espacement généreux (haut/bas: 4rem, gauche/droite: 2rem) */
+  background: linear-gradient(135deg, #ffffff 0%, #f3f4f6 100%);
+  color: #111827;
+  background-size: 200% 200%; /* Taille pour animation du dégradé */
+  animation: heroGradient 8s ease infinite; /* Animation continue du fond */
+}
+
+/* Titre principal de la section hero */
+.hero h1 {
+  font-size: 3rem; /* Taille de police très grande pour impact */
+  margin-bottom: 1rem; /* Espacement sous le titre */
+}
+
+/* Paragraphe descriptif de la section hero */
+.hero p {
+  font-size: 1.25rem; /* Taille de police légèrement plus grande */
+  margin-bottom: 2rem; /* Espacement sous le paragraphe */
+  opacity: 0.8; /* Légère transparence pour hiérarchie visuelle */
+}
+
+/*
+ * STYLES POUR LES FORMULAIRES
+ * Conteneurs et champs de formulaire avec focus et validation visuelle.
+ * Les formulaires utilisent des couleurs sombres avec des accents verts au focus.
+ */
+
+/* Conteneur du formulaire avec fond sombre et ombre */
+.form-container {
+  max-width: 500px; /* Largeur maximale pour lisibilité */
+  margin: 2rem auto; /* Centrage vertical et horizontal */
+  background: #ffffff;
+  padding: 2rem; /* Espacement interne généreux */
+  border-radius: 10px; /* Bordures arrondies */
+  box-shadow: 0 10px 25px rgba(15,23,42,0.08);
+}
+
+/* Groupe de champs de formulaire */
+.form-group {
+  margin-bottom: 1.5rem; /* Espacement entre les groupes */
+}
+
+/* Étiquettes des champs de formulaire */
+.form-group label {
+  display: block; /* Affichage en bloc pour prendre toute la largeur */
+  margin-bottom: 0.5rem; /* Espacement sous l'étiquette */
+  font-weight: 500; /* Police semi-grasse */
+  color: #111827;
+}
+
+/* Champs de saisie : input, textarea, select */
+.form-group input,
+.form-group textarea,
+.form-group select {
+  width: 100%; /* Largeur complète du conteneur */
+  padding: 0.75rem; /* Espacement interne */
+  border: 1px solid #E5E7EB;
+  border-radius: 5px; /* Bordures légèrement arrondies */
+  font-size: 1rem; /* Taille de police standard */
+  font-family: inherit; /* Hérite de la police parente */
+  background: #ffffff;
+  color: #111827;
+}
+
+/* État focus des champs : bordure verte et ombre */
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  outline: none; /* Supprime l'outline par défaut */
+  border-color: #10B981; /* Bordure verte (couleur de succès) */
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15); /* Anneau de focus vert */
+}
+
+/* Zone de texte avec redimensionnement vertical */
+.form-group textarea {
+  resize: vertical; /* Permet le redimensionnement vertical seulement */
+  min-height: 100px; /* Hauteur minimale pour confort */
+}
+
+/*
+ * STYLES POUR LE TABLEAU DE BORD (DASHBOARD)
+ * Interface d'administration avec statistiques et métriques importantes.
+ * Utilise une grille responsive pour afficher les cartes de statistiques.
+ */
+
+/* En-tête du dashboard avec alignement flexible */
+.dashboard-header {
+  display: flex; /* Utilise Flexbox pour l'alignement */
+  justify-content: space-between; /* Éléments répartis aux extrémités */
+  align-items: center; /* Alignement vertical centré */
+  margin-bottom: 2rem; /* Espacement sous l'en-tête */
+}
+
+/* Grille des statistiques du dashboard */
+.dashboard-stats {
+  display: grid; /* Utilise CSS Grid pour la disposition */
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Colonnes adaptatives minimum 250px */
+  gap: 1.5rem; /* Espacement de 1.5rem entre les cartes */
+  margin-bottom: 2rem; /* Espacement sous la grille */
+}
+
+/* Carte de statistique individuelle */
+.stat-card {
+  background: #ffffff;
+  padding: 1.5rem; /* Espacement interne confortable */
+  border-radius: 10px; /* Bordures arrondies */
+  box-shadow: 0 10px 25px rgba(15,23,42,0.08);
+}
+
+/* Titre de la carte de statistique */
+.stat-card h3 {
+  color: #6B7280;
+  font-size: 0.9rem; /* Taille de police réduite */
+  margin-bottom: 0.5rem; /* Espacement sous le titre */
+  text-transform: uppercase; /* Transformation en majuscules */
+}
+
+/* Valeur numérique de la statistique */
+.stat-card .value {
+  font-size: 2rem; /* Taille de police très grande pour impact */
+  font-weight: bold; /* Police grasse pour importance */
+  color: #2563EB;
+}
+
+/* Liste des contrats */
+.contracts-list {
+  background: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 10px 25px rgba(15,23,42,0.08);
+  overflow: hidden;
+}
+
+.contract-item {
+  padding: 1.5rem;
+  border-bottom: 1px solid #1f2937;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.contract-item:last-child {
+  border-bottom: none;
+}
+
+.contract-item:hover {
+  background: #f9fafb;
+}
+
+.contract-info h4 {
+  margin-bottom: 0.5rem;
+  color: #111827;
+}
+
+.contract-info p {
+  color: #6B7280;
+  font-size: 0.9rem;
+}
+
+.contract-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn-small {
+  padding: 10px 18px;
+  font-size: 0.9rem;
+  border-radius: 9999px;
+}
+
+/*
+ * TARIFICATION (PRICING)
+ * Section d'affichage des plans tarifaires avec cartes mises en évidence.
+ * Utilise une grille responsive pour présenter les différentes offres.
+ */
+
+/* Grille des cartes de tarification */
+.pricing-grid {
+  display: grid; /* Utilise CSS Grid pour la disposition */
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Colonnes adaptatives minimum 300px */
+  gap: 2rem; /* Espacement de 2rem entre les cartes */
+  margin: 2rem 0; /* Marge verticale de 2rem */
+}
+
+/* Carte de tarification individuelle */
+.pricing-card {
+  background: #ffffff;
+  border-radius: 10px; /* Bordures arrondies */
+  padding: 2rem; /* Espacement interne généreux */
+  box-shadow: 0 10px 25px rgba(15,23,42,0.08);
+  text-align: center; /* Centrage du texte */
+  position: relative; /* Pour positionner les éléments */
+  transition: transform 0.3s ease, box-shadow 0.3s ease; /* Transitions fluides */
+  will-change: transform, box-shadow; /* Optimisation des performances */
+}
+
+/* Variante featured avec bordure bleue et échelle */
+.pricing-card.featured {
+  border: 3px solid #1A73E8; /* Bordure bleue épaisse pour mise en évidence */
+  transform: scale(1.05); /* Légère échelle pour attirer l'attention */
+}
+
+/* État hover : élévation et ombre renforcée */
+.pricing-card:hover {
+  transform: translateY(-8px) scale(1.03); /* Translation verticale et échelle */
+  box-shadow: 0 20px 40px rgba(0,0,0,0.45); /* Ombre plus prononcée */
+}
+
+/* Titre du plan tarifaire */
+.pricing-card h3 {
+  font-size: 1.5rem; /* Taille de police importante */
+  margin-bottom: 1rem; /* Espacement sous le titre */
+}
+
+/* Prix du plan avec mise en évidence */
+.pricing-card .price {
+  font-size: 3rem; /* Taille de police très grande pour impact */
+  font-weight: bold; /* Police grasse pour importance */
+  color: #2563EB;
+  margin-bottom: 1rem; /* Espacement sous le prix */
+}
+
+/* Symbole de devise dans le prix */
+.pricing-card .price .currency {
+  font-size: 1.5rem; /* Taille réduite pour le symbole */
+  vertical-align: top; /* Alignement vertical avec le texte principal */
+}
+
+/* Liste des fonctionnalités du plan */
+.pricing-card ul {
+  list-style: none; /* Supprime les puces par défaut */
+  margin: 2rem 0; /* Marge verticale de 2rem */
+  text-align: left; /* Alignement à gauche pour la liste */
+}
+
+/* Élément de fonctionnalité dans la liste */
+.pricing-card ul li {
+  padding: 0.5rem 0; /* Espacement vertical dans chaque élément */
+  border-bottom: 1px solid #E5E7EB;
+}
+
+/* Icône de coche pour les fonctionnalités incluses */
+.pricing-card ul li:before {
+  content: "✓ "; /* Symbole de coche */
+  color: #2563EB;
+  font-weight: bold; /* Police grasse pour visibilité */
+  margin-right: 0.5rem; /* Espacement à droite de l'icône */
+}
+
+/* Icône d'avertissement pour les fonctionnalités limitées */
+.pricing-card ul li.limited:before {
+  content: "⚠ "; /* Symbole d'avertissement */
+  color: #ff9800; /* Couleur orange pour les limitations */
+}
+
+/* Alertes */
+.alert {
+  padding: 1rem;
+  border-radius: 5px;
+  margin-bottom: 1rem;
+}
+
+.alert-success {
+  background: #ECFDF3;
+  color: #166534;
+  border: 1px solid #BBF7D0;
+}
+
+.alert-error {
+  background: #FEF2F2;
+  color: #B91C1C;
+  border: 1px solid #FECACA;
+}
+
+.alert-info {
+  background: #EFF6FF;
+  color: #1D4ED8;
+  border: 1px solid #BFDBFE;
+}
+
+/* Badge plan */
+.plan-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.plan-badge.basic {
+  background: rgba(14,165,233,0.15);
+  color: #0ea5e9;
+}
+
+.plan-badge.pro {
+  background: rgba(124,58,237,0.15);
+  color: #7c3aed;
+}
+
+/* Watermark */
+.watermark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-45deg);
+  font-size: 48px;
+  color: rgba(200, 200, 200, 0.3);
+  z-index: -1;
+  font-weight: bold;
+  pointer-events: none;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  nav {
+    padding: 0.75rem 1.5rem;
+  }
+
+  .hero h1 {
+    font-size: 2rem;
+  }
+
+  .hero p {
+    font-size: 1rem;
+  }
+
+  .dashboard-header {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+
+  .pricing-card.featured {
+    transform: none;
+  }
+
+  .contract-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .nav-toggle {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .nav-links {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    left: 0;
+    flex-direction: column;
+    background: #ffffff;
+    padding: 1rem 1.5rem 1.25rem;
+    gap: 0.75rem;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+    display: none;
+  }
+
+  .nav-links.nav-links--open {
+    display: flex;
+  }
+
+  .nav-links li {
+    width: 100%;
+  }
+
+  .nav-links a {
+    width: 100%;
+  }
+}
+
+/* Loading */
+.loading {
+  text-align: center;
+  padding: 2rem;
+}
+
+.spinner {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #2563EB;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  margin: 0 auto;
+}
+/* Animations */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes heroGradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Footer */
+footer {
+  background: #ffffff;
+  color: #6B7280;
+  text-align: center;
+  padding: 2rem;
+  margin-top: 4rem;
+  border-top: 1px solid #E5E7EB;
+}
+
+/* LanderX-inspired additions */
+.gradient-text {
+  background: linear-gradient(90deg, #7dd3fc 0%, #2563EB 50%, #a78bfa 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 9999px;
+  background: #F3F4F6;
+  color: #111827;
+  font-weight: 600;
+  font-size: 0.9rem;
+  border: 1px solid #E5E7EB;
+}
+.brand-strip {
+  overflow: hidden;
+  padding: 1rem 0;
+  background: #F9FAFB;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(15,23,42,0.06);
+}
+.brand-marquee {
+  display: flex;
+  gap: 3rem;
+  white-space: nowrap;
+  animation: marquee 16s linear infinite;
+}
+.brand-logo {
+  color: #000000;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.glass-card {
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  backdrop-filter: saturate(120%) blur(12px);
+}
+.hero-large {
+  padding: 6rem 2rem;
+}
+.section {
+  padding: 4rem 0;
+}
+.section-divider {
+  height: 1px;
+  background: rgba(15,23,42,0.06);
+  margin: 2rem 0;
+}
+.testimonial-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+.testimonial-card {
+  background: #ffffff;
+  border: 1px solid rgba(15,23,42,0.06);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.18);
+}
+.testimonial-card .author {
+  margin-top: 1rem;
+  color: #000000;
+  font-size: 0.95rem;
+}
+.faq {
+  max-width: 900px;
+  margin: 0 auto;
+}
+.faq-item {
+  border-bottom: 1px solid rgba(15,23,42,0.08);
+}
+.faq-question {
+  width: 100%;
+  text-align: left;
+  padding: 1rem 0;
+  font-weight: 600;
+  color: #111827;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.faq-answer {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s ease, opacity 0.4s ease;
+  opacity: 0;
+}
+.faq-item.open .faq-answer {
+  max-height: 300px;
+  opacity: 1;
+}
+/* Checkbox pour clauses */
+.checkbox-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.5rem 0;
+}
+
+.checkbox-group input[type="checkbox"] {
+  width: auto;
+}
+
+/* Empty state */
+.empty-state {
+  text-align: center;
+  padding: 3rem;
+  color: #000000;
+}
+
+.empty-state svg {
+  width: 100px;
+  height: 100px;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}

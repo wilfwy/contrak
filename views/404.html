@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>404 - Page not found</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="/" class="logo">📄 Contrak</a>
+      <button class="nav-toggle" aria-label="Open menu" aria-expanded="false">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+      <ul class="nav-links">
+        <li><a href="/">Home</a></li>
+        <li><a href="/login">Log in</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <div class="container" style="text-align: center; padding: 4rem 0;">
+    <h1 style="font-size: 6rem; margin-bottom: 1rem;">404</h1>
+    <h2 style="margin-bottom: 1rem;">Page not found</h2>
+    <p style="color: #666; margin-bottom: 2rem;">The page you are looking for does not exist or has been moved.</p>
+    <a href="/" class="btn btn-primary">Back to home</a>
+  </div>
+  <script>
+    (function() {
+      const nav = document.querySelector('header nav');
+      if (!nav) return;
+      const toggle = nav.querySelector('.nav-toggle');
+      const links = nav.querySelector('.nav-links');
+      if (!toggle || !links) return;
+      toggle.addEventListener('click', function() {
+        const isOpen = links.classList.toggle('nav-links--open');
+        toggle.classList.toggle('nav-toggle--open', isOpen);
+        toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      });
+    })();
+  </script>
+</body>
+</html>

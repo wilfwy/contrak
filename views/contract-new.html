@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>New contract - Contrak</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="/" class="logo">📄 Contrak</a>
+      <button class="nav-toggle" aria-label="Open menu" aria-expanded="false">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+      <ul class="nav-links">
+        <li><a href="/dashboard">Dashboard</a></li>
+        <li><a href="/ebooks">Ebooks</a></li>
+        <li><a href="/pricing">Pricing</a></li>
+        <li><button id="logoutBtn" class="btn btn-outline">Log out</button></li>
+      </ul>
+    </nav>
+  </header>
+
+  <div class="container">
+    <h1 style="margin-bottom: 2rem;">Create a new contract</h1>
+
+    <div id="alertContainer"></div>
+
+    <form id="contractForm" class="form-container">
+      <h2>Provider information</h2>
+      <div class="form-group">
+        <label for="prestataireNom">Name / Company *</label>
+        <input type="text" id="prestataireNom" required>
+      </div>
+      <div class="form-group">
+        <label for="prestataireEmail">Email *</label>
+        <input type="email" id="prestataireEmail" required>
+      </div>
+      <div class="form-group">
+        <label for="prestataireAdresse">Address</label>
+        <textarea id="prestataireAdresse" rows="3"></textarea>
+      </div>
+      <div class="form-group">
+        <label for="prestataireSIRET">SIRET</label>
+        <input type="text" id="prestataireSIRET">
+      </div>
+
+      <h2 style="margin-top: 2rem;">Client information</h2>
+      <div class="form-group">
+        <label for="clientNom">Name / Company *</label>
+        <input type="text" id="clientNom" required>
+      </div>
+      <div class="form-group">
+        <label for="clientEmail">Email *</label>
+        <input type="email" id="clientEmail" required>
+      </div>
+      <div class="form-group">
+        <label for="clientAdresse">Address</label>
+        <textarea id="clientAdresse" rows="3"></textarea>
+      </div>
+
+      <h2 style="margin-top: 2rem;">Mission</h2>
+      <div class="form-group">
+        <label for="mission">Mission description *</label>
+        <textarea id="mission" rows="5" required></textarea>
+      </div>
+
+      <h2 style="margin-top: 2rem;">Pricing</h2>
+      <div class="form-group">
+        <label for="price">Amount *</label>
+        <input type="number" id="price" step="0.01" min="0" required>
+      </div>
+      <div class="form-group">
+        <label for="currency">Currency</label>
+        <select id="currency">
+          <option value="EUR">EUR (€)</option>
+          <option value="USD">USD ($)</option>
+          <option value="GBP">GBP (£)</option>
+        </select>
+      </div>
+
+      <h2 style="margin-top: 2rem;">Special clauses</h2>
+      <div class="checkbox-group">
+        <input type="checkbox" id="clauseConfidentialite" value="confidentialite">
+        <label for="clauseConfidentialite">Confidentiality clause</label>
+      </div>
+      <div class="checkbox-group">
+        <input type="checkbox" id="clauseResiliation" value="resiliation">
+        <label for="clauseResiliation">Termination clause</label>
+      </div>
+      <div class="checkbox-group">
+        <input type="checkbox" id="clausePropriete" value="propriete">
+        <label for="clausePropriete">Intellectual property clause</label>
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 2rem;">Create contract</button>
+    </form>
+  </div>
+
+  <script>
+    (function() {
+      const nav = document.querySelector('header nav');
+      if (!nav) return;
+      const toggle = nav.querySelector('.nav-toggle');
+      const links = nav.querySelector('.nav-links');
+      if (!toggle || !links) return;
+      toggle.addEventListener('click', function() {
+        const isOpen = links.classList.toggle('nav-links--open');
+        toggle.classList.toggle('nav-toggle--open', isOpen);
+        toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      });
+    })();
+
+    let currentUser = null;
+
+    // Vérifier l'authentification
+    async function checkAuth() {
+      try {
+        const response = await fetch('/api/auth/me', {
+          credentials: 'include'
+        });
+
+        if (!response.ok) {
+          window.location.href = '/login';
+          return;
+        }
+
+        const data = await response.json();
+        currentUser = data.user;
+      } catch (error) {
+        console.error('Erreur auth:', error);
+        window.location.href = '/login';
+      }
+    }
+
+    // Créer le contrat
+    document.getElementById('contractForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      // Récupérer les clauses sélectionnées
+      const clauses = [];
+      if (document.getElementById('clauseConfidentialite').checked) {
+        clauses.push('confidentialite');
+      }
+      if (document.getElementById('clauseResiliation').checked) {
+        clauses.push('resiliation');
+      }
+      if (document.getElementById('clausePropriete').checked) {
+        clauses.push('propriete');
+      }
+
+      const contractData = {
+        type: 'prestation',
+        prestataire: {
+          nom: document.getElementById('prestataireNom').value,
+          email: document.getElementById('prestataireEmail').value,
+          adresse: document.getElementById('prestataireAdresse').value,
+          siret: document.getElementById('prestataireSIRET').value
+        },
+        client: {
+          nom: document.getElementById('clientNom').value,
+          email: document.getElementById('clientEmail').value,
+          adresse: document.getElementById('clientAdresse').value
+        },
+        mission: document.getElementById('mission').value,
+        price: parseFloat(document.getElementById('price').value),
+        currency: document.getElementById('currency').value,
+        clauses: clauses
+      };
+
+      try {
+        const response = await fetch('/api/contracts', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          credentials: 'include',
+          body: JSON.stringify(contractData)
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          showAlert('success', 'Contract created successfully! Redirecting...');
+          setTimeout(() => {
+            window.location.href = '/dashboard';
+          }, 1500);
+        } else {
+          const error = await response.json();
+          showAlert('error', error.error || 'Error while creating contract');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        showAlert('error', 'Error while creating contract');
+      }
+    });
+
+    function showAlert(type, message) {
+      const container = document.getElementById('alertContainer');
+      container.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+    }
+
+    // Logout
+    document.getElementById('logoutBtn').addEventListener('click', async function() {
+      try {
+        await fetch('/api/auth/logout', {
+          method: 'POST',
+          credentials: 'include'
+        });
+        window.location.href = '/';
+      } catch (error) {
+        console.error('Logout error:', error);
+      }
+    });
+
+    checkAuth();
+  </script>
+</body>
+</html>

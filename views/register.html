@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign up - Contrak</title>
+  <link rel="stylesheet" href="/style.css">
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="/firebase-config.js"></script>
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="/" class="logo">📄 Contrak</a>
+      <button class="nav-toggle" aria-label="Open menu" aria-expanded="false">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+      <ul class="nav-links">
+        <li><a href="/">Home</a></li>
+        <li><a href="/login">Log in</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <div class="container">
+    <div class="form-container">
+      <h1 style="text-align: center; margin-bottom: 2rem;">Sign up</h1>
+      
+      <div id="alertContainer"></div>
+
+      <form id="registerForm">
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" required>
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password (min. 6 characters)</label>
+          <input type="password" id="password" name="password" required minlength="6">
+        </div>
+
+        <div class="form-group">
+          <label for="confirmPassword">Confirm password</label>
+          <input type="password" id="confirmPassword" name="confirmPassword" required minlength="6">
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%;">Create my account</button>
+      </form>
+
+      <p style="text-align: center; margin-top: 1.5rem;">
+        Already have an account? <a href="/login">Log in</a>
+      </p>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      const nav = document.querySelector('header nav');
+      if (!nav) return;
+      const toggle = nav.querySelector('.nav-toggle');
+      const links = nav.querySelector('.nav-links');
+      if (!toggle || !links) return;
+      toggle.addEventListener('click', function() {
+        const isOpen = links.classList.toggle('nav-links--open');
+        toggle.classList.toggle('nav-toggle--open', isOpen);
+        toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      });
+    })();
+
+    // Firebase est initialisé dans firebase-config.js
+    const auth = typeof firebase !== 'undefined' ? firebase.auth() : null;
+
+    document.getElementById('registerForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      if (!auth) {
+        showAlert('error', 'Firebase not initialized. Check configuration in firebase-config.js');
+        return;
+      }
+      
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const confirmPassword = document.getElementById('confirmPassword').value;
+
+      if (password !== confirmPassword) {
+        showAlert('error', 'Passwords do not match');
+        return;
+      }
+
+      try {
+        // Créer l'utilisateur avec Firebase Auth
+        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+        const idToken = await userCredential.user.getIdToken();
+
+        // Enregistrer l'utilisateur dans Firestore via le serveur
+        const response = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          credentials: 'include',
+          body: JSON.stringify({ email, password: '***' })
+        });
+
+        // Se connecter automatiquement
+        const loginResponse = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          credentials: 'include',
+          body: JSON.stringify({ idToken })
+        });
+
+        if (loginResponse.ok) {
+          showAlert('success', 'Sign up successful! Redirecting...');
+          setTimeout(() => {
+            window.location.href = '/dashboard';
+          }, 1000);
+        } else {
+          const error = await loginResponse.json();
+          showAlert('error', error.error || 'Error during sign up');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        showAlert('error', error.message || 'Error during sign up');
+      }
+    });
+
+    function showAlert(type, message) {
+      const container = document.getElementById('alertContainer');
+      container.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+    }
+  </script>
+</body>
+</html>
