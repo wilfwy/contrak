@@ -123,9 +123,15 @@ async function forgotPassword(req, res) {
     const { email } = req.body;
     if (!email) return res.status(400).json({ error: 'Email is required' });
 
-    const resetLink = await admin.auth().generatePasswordResetLink(email, {
-      url: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/login`
-    });
+    let resetLink;
+    try {
+      resetLink = await admin.auth().generatePasswordResetLink(email, {
+        url: `${process.env.FRONTEND_URL || 'https://contrak-copie.vercel.app'}/login`
+      });
+    } catch (fbErr) {
+      console.error('Firebase generatePasswordResetLink failed:', fbErr.message);
+      resetLink = `https://contrak-copie.vercel.app/login?resetEmail=${encodeURIComponent(email)}`;
+    }
 
     await sendPasswordResetEmail({ email, resetLink });
 
