@@ -11,7 +11,7 @@ const {
   updateCouponById,
   getCouponByCode
 } = require('../services/firebase.service');
-const { sendOrderConfirmation } = require('../services/email.service');
+const { sendOrderConfirmation, sendNewOrderNotification } = require('../services/email.service');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 async function createCheckoutSession(req, res) {
@@ -189,6 +189,36 @@ async function webhook(req, res) {
         }
       } catch (emailErr) {
         console.error('Failed to send order confirmation email:', emailErr.message);
+      }
+
+      // Notify seller(s) of new order
+      try {
+        const order = await getOrderById(orderId);
+        if (order) {
+          const itemList = order.items && order.items.length > 0 ? order.items : (order.productVersionId ? [{ productId: order.productId }] : []);
+          const sellerNotified = new Set();
+          for (const item of itemList) {
+            if (item.productId && !sellerNotified.has(item.productId)) {
+              sellerNotified.add(item.productId);
+              const product = await getProductById(item.productId);
+              if (product && product.ownerId) {
+                const seller = await getUser(product.ownerId);
+                if (seller && seller.email && seller.email !== (order.userEmail || '')) {
+                  await sendNewOrderNotification({
+                    email: seller.email,
+                    orderId: order.id,
+                    customerEmail: order.userEmail || order.email || 'Guest',
+                    productTitle: item.title || product.title || 'Digital product',
+                    amount: order.totals?.finalTotal || 0,
+                    currency: order.currency || 'EUR'
+                  });
+                }
+              }
+            }
+          }
+        }
+      } catch (sellerErr) {
+        console.error('Failed to send seller notification:', sellerErr.message);
       }
 
       break;

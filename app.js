@@ -114,6 +114,14 @@ app.get('/orders-admin', (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'orders-admin.html'));
 });
 
+app.get('/coupons', (req, res) => {
+  res.sendFile(path.join(__dirname, 'views', 'coupons.html'));
+});
+
+app.get('/customers', (req, res) => {
+  res.sendFile(path.join(__dirname, 'views', 'customers.html'));
+});
+
 app.get('/thank-you', (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'thank-you.html'));
 });

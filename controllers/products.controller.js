@@ -216,12 +216,55 @@ async function deleteProductVersion(req, res) {
   }
 }
 
+async function duplicateProduct(req, res) {
+  try {
+    const { productId } = req.params;
+    const existing = await getProductById(productId);
+    if (!existing) return res.status(404).json({ error: 'Product not found' });
+    if (!ensureOwner(existing, req.userId)) return res.status(403).json({ error: 'Forbidden access' });
+
+    const versions = await listVersionsByProduct(productId);
+
+    const dup = await createProductInDb({
+      ownerId: req.userId,
+      title: existing.title + ' (copy)',
+      slug: slugify(existing.title + '-copy-' + Date.now()),
+      description: existing.description || null,
+      status: 'draft',
+      coverMediaId: existing.coverMediaId || null,
+      theme: existing.theme || null,
+      ebookId: existing.ebookId || null,
+      landingPageSlug: null,
+      createdBy: req.userId
+    });
+
+    for (const v of versions) {
+      await createProductVersionInDb({
+        productId: dup.id,
+        ownerId: req.userId,
+        versionLabel: v.versionLabel || 'v1',
+        status: 'draft',
+        price: v.price ?? 0,
+        currency: v.currency || 'EUR',
+        ebookPayload: v.ebookPayload || null,
+        marketingCopy: v.marketingCopy || null
+      });
+    }
+
+    res.status(201).json({ product: dup });
+  } catch (error) {
+    console.error('duplicateProduct error:', error);
+    res.status(500).json({ error: 'Error duplicating product' });
+  }
+}
+
 module.exports = {
   listProducts,
   createProduct,
   getProduct,
   updateProduct,
   deleteProduct,
+  duplicateProduct,
   createProductVersion,
   getProductVersion,
   updateProductVersion,

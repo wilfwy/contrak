@@ -24,4 +24,9 @@ router.get('/', ordersController.listMyOrders);
 // Récupérer une commande (appartenance contrôlée côté contrôleur)
 router.get('/:orderId', ordersController.getMyOrder);
 
+// Export CSV
+router.get('/export/csv', ordersController.exportOrdersCSV);
+
+router.get('/customers/list', ordersController.listCustomers);
+
 module.exports = router;

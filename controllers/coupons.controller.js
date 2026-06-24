@@ -40,6 +40,26 @@ async function create(req, res) {
   }
 }
 
+async function update(req, res) {
+  try {
+    const { couponId } = req.params;
+    const payload = req.body;
+    const updateData = {};
+    if (payload.description !== undefined) updateData.description = payload.description;
+    if (payload.discountPercent !== undefined) updateData.discountPercent = payload.discountPercent;
+    if (payload.discountAmount !== undefined) updateData.discountAmount = payload.discountAmount;
+    if (payload.minAmount !== undefined) updateData.minAmount = payload.minAmount;
+    if (payload.maxUses !== undefined) updateData.maxUses = payload.maxUses;
+    if (payload.expiresAt !== undefined) updateData.expiresAt = payload.expiresAt;
+    if (payload.active !== undefined) updateData.active = payload.active;
+    const coupon = await updateCouponById(couponId, updateData);
+    res.json({ coupon });
+  } catch (error) {
+    console.error('updateCoupon error:', error);
+    res.status(500).json({ error: 'Error updating coupon' });
+  }
+}
+
 async function remove(req, res) {
   try {
     const { couponId } = req.params;
@@ -83,4 +103,4 @@ async function validate(req, res) {
   }
 }
 
-module.exports = { listCoupons, create, remove, validate };
+module.exports = { listCoupons, create, update, remove, validate };

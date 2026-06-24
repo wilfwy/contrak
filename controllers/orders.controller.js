@@ -258,10 +258,110 @@ async function guestCheckout(req, res) {
   }
 }
 
+async function listCustomers(req, res) {
+  try {
+    const userId = req.userId;
+    const { listOrdersByUser } = require('../services/firebase.service');
+    const { getOrderById } = require('../services/firebase.service');
+    
+    // Get all orders that belong to this user's products
+    // First get all products owned by user
+    const { listProductsByOwner } = require('../services/firebase.service');
+    const products = await listProductsByOwner(userId);
+    const productIds = products.map(p => p.id);
+    
+    if (!productIds.length) return res.json({ customers: [] });
+    
+    // Get all orders (we need to query orders collection)
+    const db = require('../services/firebase.service').getDb();
+    const ordersSnap = await db.collection('orders')
+      .where('status', '==', 'paid')
+      .get();
+    
+    const customerMap = {};
+    ordersSnap.docs.forEach(doc => {
+      const data = doc.data();
+      const items = data.items || [];
+      const hasMyProduct = items.some(item => productIds.includes(item.productId)) || 
+        (data.productId && productIds.includes(data.productId));
+      
+      if (hasMyProduct) {
+        const email = data.userEmail || data.email || 'unknown';
+        if (!customerMap[email]) {
+          customerMap[email] = {
+            email,
+            userId: data.userId,
+            isGuest: data.isGuest || false,
+            totalSpent: 0,
+            orderCount: 0,
+            lastPurchase: data.createdAt || null,
+            products: []
+          };
+        }
+        customerMap[email].totalSpent += (data.totals?.finalTotal || 0);
+        customerMap[email].orderCount++;
+        if (!customerMap[email].lastPurchase || data.createdAt > customerMap[email].lastPurchase) {
+          customerMap[email].lastPurchase = data.createdAt;
+        }
+        items.forEach(item => {
+          if (productIds.includes(item.productId)) {
+            const title = item.title || 'Product';
+            if (!customerMap[email].products.includes(title)) {
+              customerMap[email].products.push(title);
+            }
+          }
+        });
+      }
+    });
+    
+    const customers = Object.values(customerMap).sort((a, b) => {
+      if (!a.lastPurchase) return 1;
+      if (!b.lastPurchase) return -1;
+      return b.lastPurchase.localeCompare(a.lastPurchase);
+    });
+    
+    return res.json({ customers });
+  } catch (error) {
+    console.error('listCustomers error:', error);
+    return res.status(500).json({ error: 'Error listing customers' });
+  }
+}
+
+async function exportOrdersCSV(req, res) {
+  try {
+    const userId = req.userId;
+    const orders = await (require('../services/firebase.service').listOrdersByUser)(userId);
+
+    const headers = 'Order ID,Date,Email,Status,Items,Currency,Total,Discount,Coupon\n';
+    const rows = orders.map(o => {
+      const id = (o.id || '').replace(/"/g, '""');
+      const date = o.createdAt ? new Date(o.createdAt).toISOString().split('T')[0] : '';
+      const email = (o.userEmail || o.email || '').replace(/"/g, '""');
+      const status = o.status || '';
+      const items = (o.items || []).map(i => (i.title || '') + ' ' + (i.versionLabel || '')).join('; ').replace(/"/g, '""');
+      const currency = o.currency || 'EUR';
+      const total = o.totals?.finalTotal != null ? (o.totals.finalTotal / 100).toFixed(2) : '';
+      const discount = o.totals?.discount != null ? (o.totals.discount / 100).toFixed(2) : '';
+      const coupon = o.couponCode || '';
+      return `"${id}","${date}","${email}","${status}","${items}","${currency}","${total}","${discount}","${coupon}"`;
+    }).join('\n');
+
+    const csv = '\uFEFF' + headers + rows;
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', 'attachment; filename=orders.csv');
+    res.send(csv);
+  } catch (error) {
+    console.error('exportOrdersCSV error:', error);
+    return res.status(500).json({ error: 'Error exporting orders' });
+  }
+}
+
 module.exports = {
   createCheckoutSession,
   listMyOrders,
   getMyOrder,
   validateCouponCode,
-  guestCheckout
+  guestCheckout,
+  listCustomers,
+  exportOrdersCSV
 };

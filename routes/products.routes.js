@@ -18,6 +18,7 @@ router.post('/', quotaMiddleware('products'), validateProductCreate, productsCon
 router.get('/:productId', productsController.getProduct);
 router.put('/:productId', productsController.updateProduct);
 router.delete('/:productId', productsController.deleteProduct);
+router.post('/:productId/duplicate', productsController.duplicateProduct);
 
 // Product versions
 router.post('/:productId/versions', validateProductVersionCreate, productsController.createProductVersion);

@@ -268,7 +268,8 @@
                 }).join('')
               : '<p style="color:var(--text-muted);font-size:0.9rem;padding:0.5rem 0;">No versions yet.</p>';
 
-            return '<div class="product-card"><div class="product-card-header"><div><h3>' + (p.title || 'Untitled') + '</h3><div class="product-meta"><span>Slug: ' + (p.slug || p.id) + '</span><span>Created: ' + (p.createdAt ? new Date(p.createdAt).toLocaleDateString('en-GB') : '—') + '</span><span class="status-badge ' + statusClass + '">' + p.status + '</span></div></div><div style="display:flex; gap:0.5rem;"><button class="btn btn-small btn-primary" onclick="openNewVersion(\'' + p.id + '\')">+ Version</button><button class="btn btn-small btn-outline" onclick="editProduct(\'' + p.id + '\')">Edit</button><button class="btn btn-small btn-outline" onclick="deleteProduct(\'' + p.id + '\')">Delete</button></div></div><div style="margin-top:0.5rem;"><label style="font-size:0.85rem;font-weight:600;color:var(--text-muted);">Versions:</label>' + versionsHtml + '</div></div>';
+            const thumb = p.coverMediaId ? '<img src="/api/media/' + p.coverMediaId + '" style="width:40px;height:40px;object-fit:cover;border-radius:6px;margin-right:0.75rem;">' : '';
+            return '<div class="product-card"><div class="product-card-header"><div style="display:flex;align-items:center;">' + thumb + '<div><h3>' + (p.title || 'Untitled') + '</h3><div class="product-meta"><span>Slug: ' + (p.slug || p.id) + '</span><span>Created: ' + (p.createdAt ? new Date(p.createdAt).toLocaleDateString('en-GB') : '—') + '</span><span class="status-badge ' + statusClass + '">' + p.status + '</span></div></div></div><div style="display:flex; gap:0.5rem;flex-wrap:wrap;"><button class="btn btn-small btn-primary" onclick="openNewVersion(\'' + p.id + '\')">+ Version</button><button class="btn btn-small btn-outline" onclick="editProduct(\'' + p.id + '\')">Edit</button><button class="btn btn-small btn-outline" onclick="duplicateProduct(\'' + p.id + '\')">Duplicate</button><button class="btn btn-small btn-outline" onclick="deleteProduct(\'' + p.id + '\')">Delete</button></div></div><div style="margin-top:0.5rem;"><label style="font-size:0.85rem;font-weight:600;color:var(--text-muted);">Versions:</label>' + versionsHtml + '</div></div>';
           } catch(e) {
             console.error('Error rendering product card:', p, e);
             return '';
@@ -359,6 +360,15 @@
       try {
         await api('/api/products/' + id, { method: 'DELETE' });
         showAlert('success', 'Product deleted');
+        loadProducts();
+      } catch(e) { showAlert('error', e.message); }
+    }
+
+    async function duplicateProduct(id) {
+      if (!confirm('Duplicate this product (including all versions)?')) return;
+      try {
+        await api('/api/products/' + id + '/duplicate', { method: 'POST' });
+        showAlert('success', 'Product duplicated!');
         loadProducts();
       } catch(e) { showAlert('error', e.message); }
     }

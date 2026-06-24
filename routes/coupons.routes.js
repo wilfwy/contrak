@@ -8,6 +8,7 @@ router.use(loadUserInfo);
 
 router.get('/', couponsController.listCoupons);
 router.post('/', couponsController.create);
+router.put('/:couponId', couponsController.update);
 router.delete('/:couponId', couponsController.remove);
 
 // Public validation

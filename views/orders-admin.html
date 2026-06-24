@@ -48,8 +48,13 @@
     </nav>
   </header>
   <div class="container">
-    <h1 style="color:var(--green-100);">Orders</h1>
-    <p style="color:var(--text-muted);margin-bottom:1.5rem;">View and manage customer orders for your products.</p>
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;">
+      <div>
+        <h1 style="color:var(--green-100);">Orders</h1>
+        <p style="color:var(--text-muted);">View and manage customer orders for your products.</p>
+      </div>
+      <a href="/api/orders/export/csv" class="btn btn-outline" style="white-space:nowrap;">⬇ Export CSV</a>
+    </div>
 
     <div class="stats-row" id="statsRow">
       <div class="stat-card"><div class="value" id="totalOrders">-</div><div class="label">Total Orders</div></div>
@@ -57,11 +62,14 @@
       <div class="stat-card"><div class="value" id="totalRevenue" style="color:#FBBF24;">-</div><div class="label">Revenue</div></div>
     </div>
 
-    <div class="tabs">
-      <button class="tab active" data-filter="all">All</button>
-      <button class="tab" data-filter="paid">Paid</button>
-      <button class="tab" data-filter="pending">Pending</button>
-      <button class="tab" data-filter="refunded">Refunded</button>
+    <div style="display:flex;gap:1rem;flex-wrap:wrap;align-items:center;margin-bottom:1rem;">
+      <div class="tabs" style="margin-bottom:0;">
+        <button class="tab active" data-filter="all">All</button>
+        <button class="tab" data-filter="paid">Paid</button>
+        <button class="tab" data-filter="pending">Pending</button>
+        <button class="tab" data-filter="refunded">Refunded</button>
+      </div>
+      <input type="text" id="searchInput" placeholder="Search by email or ID..." style="flex:1;min-width:200px;padding:0.5rem 0.75rem;background:var(--dark);border:1px solid var(--border);color:var(--green-100);border-radius:8px;">
     </div>
 
     <div id="ordersContainer"><div class="loading"><div class="spinner"></div></div></div>
@@ -109,6 +117,8 @@
       } catch(e) { document.getElementById('ordersContainer').innerHTML = '<p style="color:var(--text-muted);">Error loading orders.</p>'; }
     }
 
+    let searchTerm = '';
+
     function render() {
       updateStats();
       renderOrders();
@@ -124,7 +134,15 @@
     }
 
     function renderOrders() {
-      const filtered = currentFilter === 'all' ? allOrders : allOrders.filter(function(o) { return o.status === currentFilter; });
+      let filtered = currentFilter === 'all' ? allOrders : allOrders.filter(function(o) { return o.status === currentFilter; });
+      if (searchTerm) {
+        const term = searchTerm.toLowerCase();
+        filtered = filtered.filter(function(o) {
+          const email = (o.userEmail || o.email || '').toLowerCase();
+          const id = (o.id || o.orderId || '').toLowerCase();
+          return email.includes(term) || id.includes(term);
+        });
+      }
       const container = document.getElementById('ordersContainer');
 
       if (!filtered.length) {
@@ -177,6 +195,11 @@
         currentFilter = this.dataset.filter;
         renderOrders();
       });
+    });
+
+    document.getElementById('searchInput').addEventListener('input', function() {
+      searchTerm = this.value;
+      renderOrders();
     });
 
     function showAlert(type, msg) {

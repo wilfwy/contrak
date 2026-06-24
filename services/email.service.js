@@ -83,8 +83,35 @@ async function sendPasswordResetEmail({ email, resetLink }) {
   return sendEmail({ to: email, subject, html });
 }
 
+async function sendNewOrderNotification({ email, orderId, customerEmail, productTitle, amount, currency }) {
+  const subject = 'New sale: ' + productTitle + ' - Contrak';
+  const html = `
+    <div style="font-family:sans-serif;max-width:600px;margin:0 auto;">
+      <div style="background:#052E2B;padding:20px;text-align:center;">
+        <h1 style="color:#fff;margin:0;">CONTRAK</h1>
+      </div>
+      <div style="padding:30px;background:#f9f9f9;">
+        <h2>You made a sale! 🎉</h2>
+        <p>Someone just purchased your product.</p>
+        <table style="width:100%;border-collapse:collapse;margin:20px 0;">
+          <tr><td style="padding:10px;border:1px solid #ddd;"><strong>Product</strong></td><td style="padding:10px;border:1px solid #ddd;">${productTitle}</td></tr>
+          <tr><td style="padding:10px;border:1px solid #ddd;"><strong>Customer</strong></td><td style="padding:10px;border:1px solid #ddd;">${customerEmail}</td></tr>
+          <tr><td style="padding:10px;border:1px solid #ddd;"><strong>Amount</strong></td><td style="padding:10px;border:1px solid #ddd;">${((amount || 0) / 100).toFixed(2)} ${currency || 'EUR'}</td></tr>
+          <tr><td style="padding:10px;border:1px solid #ddd;"><strong>Order</strong></td><td style="padding:10px;border:1px solid #ddd;">#${(orderId || '').slice(0, 8)}</td></tr>
+        </table>
+        <a href="${getFrontendUrl()}/orders-admin" style="display:inline-block;background:#052E2B;color:#fff;padding:12px 32px;border-radius:9999px;text-decoration:none;font-weight:600;">View Orders</a>
+      </div>
+      <div style="padding:15px;text-align:center;color:#999;font-size:0.8rem;">
+        <p>Contrak - ${getFrontendUrl()}</p>
+      </div>
+    </div>
+  `;
+  return sendEmail({ to: email, subject, html });
+}
+
 module.exports = {
   sendEmail,
   sendOrderConfirmation,
-  sendPasswordResetEmail
+  sendPasswordResetEmail,
+  sendNewOrderNotification
 };
