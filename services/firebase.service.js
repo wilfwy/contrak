@@ -805,6 +805,68 @@ async function getEbookByDocId(docId) {
   return { id: doc.id, ...doc.data() };
 }
 
+async function getSalesAnalytics(ownerId) {
+  const db = getDb();
+  const ordersSnap = await db.collection('orders').where('userId', '==', ownerId).get();
+  const productsSnap = await db.collection('products').where('ownerId', '==', ownerId).get();
+  const productMap = {};
+  productsSnap.forEach(d => { productMap[d.id] = d.data().title || 'Untitled'; });
+
+  let totalRevenue = 0;
+  let totalOrders = 0;
+  let paidOrders = 0;
+  let refundedOrders = 0;
+  let refundedAmount = 0;
+  const productRevenue = {};
+  const dayBuckets = {};
+
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const key = d.toISOString().split('T')[0];
+    dayBuckets[key] = { date: key, revenue: 0, orders: 0 };
+  }
+
+  ordersSnap.forEach(doc => {
+    const o = doc.data();
+    totalOrders++;
+    if (o.status === 'paid') paidOrders++;
+    if (o.status === 'refunded') { refundedOrders++; refundedAmount += o.totalAmount || 0; }
+    totalRevenue += o.totalAmount || 0;
+
+    const ts = o.createdAt && typeof o.createdAt.toDate === 'function' ? o.createdAt.toDate().toISOString().split('T')[0] : null;
+    if (ts && dayBuckets[ts]) {
+      dayBuckets[ts].revenue += o.totalAmount || 0;
+      dayBuckets[ts].orders++;
+    }
+
+    const items = o.items || (o.productId ? [{ productId: o.productId }] : []);
+    items.forEach(item => {
+      const pid = item.productId || 'unknown';
+      const rev = item.price || 0;
+      productRevenue[pid] = (productRevenue[pid] || 0) + rev;
+    });
+  });
+
+  const topProducts = Object.entries(productRevenue)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 10)
+    .map(([id, rev]) => ({ id, title: productMap[id] || 'Deleted product', revenue: rev }));
+
+  const avgOrderValue = paidOrders > 0 ? Math.round(totalRevenue / paidOrders) : 0;
+
+  return {
+    totalRevenue,
+    totalOrders,
+    paidOrders,
+    refundedOrders,
+    refundedAmount,
+    avgOrderValue,
+    topProducts,
+    daily: Object.values(dayBuckets)
+  };
+}
+
 module.exports = {
   verifyIdToken,
   createUser,
@@ -866,6 +928,7 @@ module.exports = {
   // Analytics
   trackEvent,
   getAnalyticsStats,
+  getSalesAnalytics,
 
   // Cart
   getCart,

@@ -1,4 +1,4 @@
-const { trackEvent, getAnalyticsStats } = require('../services/firebase.service');
+const { trackEvent, getAnalyticsStats, getSalesAnalytics } = require('../services/firebase.service');
 
 async function track(req, res) {
   try {
@@ -32,4 +32,14 @@ async function stats(req, res) {
   }
 }
 
-module.exports = { track, stats };
+async function salesDashboard(req, res) {
+  try {
+    const data = await getSalesAnalytics(req.userId);
+    res.json({ data });
+  } catch (error) {
+    console.error('Sales analytics error:', error);
+    res.status(500).json({ error: 'Error fetching sales analytics' });
+  }
+}
+
+module.exports = { track, stats, salesDashboard };
