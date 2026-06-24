@@ -193,9 +193,75 @@ async function getMyOrder(req, res) {
   }
 }
 
+async function guestCheckout(req, res) {
+  try {
+    const { items, guestEmail, currency = 'eur', successUrl, cancelUrl, couponCode } = req.body || {};
+
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ error: 'No items provided' });
+    }
+    if (!guestEmail) {
+      return res.status(400).json({ error: 'Guest email is required' });
+    }
+
+    const rawTotal = items.reduce((sum, item) => sum + Number(item.price), 0);
+
+    let couponInfo = null;
+    let totalAmount = rawTotal;
+    if (couponCode) {
+      const result = await validateCouponCode(couponCode, rawTotal);
+      if (!result.valid) return res.status(400).json({ error: result.error || 'Invalid coupon' });
+      couponInfo = { code: couponCode.toUpperCase(), discount: result.discount, couponId: result.coupon.id };
+      totalAmount = result.finalAmount;
+    }
+
+    const order = await createOrder({
+      userId: null,
+      userEmail: guestEmail,
+      status: 'pending',
+      currency: currency.toUpperCase(),
+      totals: { total: rawTotal, discount: couponInfo?.discount || 0, finalTotal: totalAmount },
+      items: items.map(item => ({
+        productId: item.productId,
+        productVersionId: item.productVersionId,
+        title: item.title,
+        versionLabel: item.versionLabel,
+        price: Number(item.price),
+        currency: item.currency || 'EUR'
+      })),
+      couponCode: couponInfo?.code || null,
+      couponId: couponInfo?.couponId || null,
+      couponDiscount: couponInfo?.discount || 0,
+      isGuest: true
+    });
+
+    const session = await createDigitalCheckoutSession({
+      userId: 'guest_' + order.id,
+      userEmail: guestEmail,
+      orderId: order.id,
+      items,
+      amount: totalAmount,
+      currency,
+      successUrl: successUrl || (process.env.FRONTEND_URL || 'http://localhost:3000') + '/thank-you?orderId=' + order.id,
+      cancelUrl: cancelUrl || (process.env.FRONTEND_URL || 'http://localhost:3000') + '/cart?payment=cancel'
+    });
+
+    return res.json({
+      orderId: order.id,
+      sessionId: session.id,
+      url: session.url,
+      discount: couponInfo?.discount || 0
+    });
+  } catch (error) {
+    console.error('guestCheckout error:', error);
+    return res.status(500).json({ error: 'Error while creating guest checkout session' });
+  }
+}
+
 module.exports = {
   createCheckoutSession,
   listMyOrders,
   getMyOrder,
-  validateCouponCode
+  validateCouponCode,
+  guestCheckout
 };

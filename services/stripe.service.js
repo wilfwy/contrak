@@ -60,7 +60,7 @@ async function createDigitalCheckoutSession({
   if (!items && !productVersionId && !productId) throw new Error('Missing productVersionId (or productId)');
 
   const frontendUrl = getFrontendUrl();
-  const successUrl = customSuccessUrl || `${frontendUrl}/dashboard?payment=success&orderId=${orderId}`;
+  const successUrl = customSuccessUrl || `${frontendUrl}/thank-you?orderId=${orderId}`;
   const cancelUrl = customCancelUrl || `${frontendUrl}/dashboard?payment=cancel`;
 
   // If multi-item (cart), build line_items from items array

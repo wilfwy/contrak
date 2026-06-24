@@ -106,6 +106,18 @@ app.get('/profile', (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'profile.html'));
 });
 
+app.get('/media', (req, res) => {
+  res.sendFile(path.join(__dirname, 'views', 'media.html'));
+});
+
+app.get('/orders-admin', (req, res) => {
+  res.sendFile(path.join(__dirname, 'views', 'orders-admin.html'));
+});
+
+app.get('/thank-you', (req, res) => {
+  res.sendFile(path.join(__dirname, 'views', 'thank-you.html'));
+});
+
 app.get('/cart', (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'cart.html'));
 });

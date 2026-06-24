@@ -30,6 +30,9 @@
         <li><a href="/products">Products</a></li>
         <li><a href="/pages">Pages</a></li>
         <li><a href="/pricing">Pricing</a></li>
+        <li><a href="/media">Media</a></li>
+        <li><a href="/orders-admin">Orders</a></li>
+        <li><a href="/blog">Blog</a></li>
         <li><span id="userPlan" class="plan-badge basic">BASIC</span></li>
         <li><button id="logoutBtn" class="btn btn-outline">Log out</button></li>
       </ul>
@@ -74,6 +77,11 @@
         <button id="manageBillingBtn" class="btn btn-outline">Manage Billing</button>
         <button id="resetPasswordBtn" class="btn btn-outline">Reset Password</button>
       </div>
+    </div>
+
+    <div class="profile-section">
+      <h2>Order History</h2>
+      <div id="orderHistory"><div class="loading"><div class="spinner"></div></div></div>
     </div>
 
     <div class="profile-section danger-zone" style="display:none;" id="adminSection">
@@ -205,12 +213,36 @@
       c.innerHTML = '<div class="alert alert-' + type + '">' + msg + '</div>';
     }
 
+    async function loadOrderHistory() {
+      try {
+        const r = await fetch('/api/orders/', { credentials: 'include' });
+        if (!r.ok) { document.getElementById('orderHistory').innerHTML = '<p style="color:var(--text-muted);">No orders yet.</p>'; return; }
+        const d = await r.json();
+        const orders = d.orders || [];
+        const container = document.getElementById('orderHistory');
+        if (!orders.length) { container.innerHTML = '<p style="color:var(--text-muted);">No orders yet.</p>'; return; }
+        container.innerHTML = orders.slice(0, 10).map(function(o) {
+          const id = (o.id || '').slice(0, 8);
+          const total = o.totals && o.totals.finalTotal ? (o.totals.finalTotal / 100).toFixed(2) + ' ' + (o.currency || 'EUR') : '-';
+          const date = o.createdAt ? new Date(o.createdAt).toLocaleDateString('en-GB') : '';
+          const badge = o.status === 'paid' ? 'color:#34D399;' : 'color:var(--text-muted);';
+          return '<div style="display:flex;justify-content:space-between;padding:0.75rem 0;border-bottom:1px solid var(--border);">' +
+            '<span style="color:var(--green-200);font-family:monospace;">#' + id + '</span>' +
+            '<span style="color:var(--text-muted);">' + date + '</span>' +
+            '<span style="' + badge + 'font-weight:600;">' + o.status + '</span>' +
+            '<span style="color:var(--green-100);font-weight:600;">' + total + '</span></div>';
+        }).join('');
+        if (orders.length > 10) container.innerHTML += '<p style="color:var(--text-muted);text-align:center;margin-top:0.5rem;"><a href="/orders-admin" style="color:#34D399;">View all orders →</a></p>';
+      } catch(e) { document.getElementById('orderHistory').innerHTML = '<p style="color:var(--text-muted);">No orders yet.</p>'; }
+    }
+
     document.getElementById('logoutBtn').addEventListener('click', async function() {
       await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
       window.location.href = '/';
     });
 
     checkAuth();
+    setTimeout(loadOrderHistory, 500);
   </script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
