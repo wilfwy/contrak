@@ -3,10 +3,20 @@ const OpenAI = require('openai');
 const GROQ_API_KEY = process.env.GROK_API_KEY;
 const GROQ_MODEL = 'llama-3.3-70b-versatile';
 
-const grok = new OpenAI({
-  apiKey: GROQ_API_KEY,
-  baseURL: 'https://api.groq.com/openai/v1'
-});
+let grok = null;
+
+function getGrok() {
+  if (!grok) {
+    if (!GROQ_API_KEY) {
+      throw new Error('GROK_API_KEY not configured');
+    }
+    grok = new OpenAI({
+      apiKey: GROQ_API_KEY,
+      baseURL: 'https://api.groq.com/openai/v1'
+    });
+  }
+  return grok;
+}
 
 function hasGrokKey() {
   return Boolean(GROQ_API_KEY);
@@ -35,7 +45,8 @@ function parseAIJsonResponse(text) {
 }
 
 async function callGrok(prompt, maxTokens = 2048) {
-  const completion = await grok.chat.completions.create({
+  const client = getGrok();
+  const completion = await client.chat.completions.create({
     model: GROQ_MODEL,
     max_tokens: maxTokens,
     messages: [{ role: 'user', content: prompt }]

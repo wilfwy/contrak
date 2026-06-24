@@ -72,8 +72,8 @@ function ensureTempDir() {
 
 function createPdfWriter() {
   const ebookId = 'ebook-' + Date.now();
-  ensureTempDir();
-  const outputPath = path.join(__dirname, '../temp', ebookId + '.pdf');
+  const tempDir = ensureTempDir();
+  const outputPath = path.join(tempDir, ebookId + '.pdf');
   const doc = new PDFDocument({
     size: 'A4',
     margins: { top: 60, bottom: 60, left: 70, right: 70 },

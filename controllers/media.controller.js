@@ -1,45 +1,36 @@
-const { createMedia, listMediaByOwner, deleteMediaById } = require('../services/firebase.service');
-const path = require('path');
-const fs = require('fs');
-
-const UPLOAD_DIR = process.env.VERCEL
-  ? '/tmp/uploads'
-  : path.join(__dirname, '..', 'public', 'uploads');
-
-try {
-  if (!fs.existsSync(UPLOAD_DIR)) {
-    fs.mkdirSync(UPLOAD_DIR, { recursive: true });
-  }
-} catch (e) {
-  console.error('Could not create upload dir:', e.message);
-}
+const cloudinaryService = require('../services/cloudinary.service');
+const { createMedia, listMediaByOwner, deleteMediaById, getDb } = require('../services/firebase.service');
 
 async function upload(req, res) {
   try {
-    let url = req.body?.url;
-    let name = req.body?.name || 'untitled';
-    let type = req.body?.type || 'image';
-
+    let result;
     if (req.file) {
-      url = '/uploads/' + req.file.filename;
-      name = req.file.originalname;
-      type = req.file.mimetype.startsWith('image/') ? 'image' : 'file';
+      if (!cloudinaryService.isConfigured()) {
+        return res.status(500).json({ error: 'Cloudinary not configured (set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET env vars)' });
+      }
+      result = await cloudinaryService.uploadImage(req.file.buffer, { folder: 'contrak/media' });
+    } else if (req.body.url) {
+      if (!cloudinaryService.isConfigured()) {
+        return res.status(500).json({ error: 'Cloudinary not configured' });
+      }
+      result = await cloudinaryService.uploadFromUrl(req.body.url, { folder: 'contrak/media' });
+    } else {
+      return res.status(400).json({ error: 'No file or URL provided' });
     }
 
-    if (!url) return res.status(400).json({ error: 'Media URL or file is required' });
-
-    const media = await createMedia({
+    const mediaRecord = await createMedia({
       ownerId: req.userId,
-      url,
-      name,
-      type,
-      size: req.file?.size || null
+      url: result.url,
+      cloudinaryPublicId: result.publicId,
+      name: req.file ? req.file.originalname : (req.body.name || 'from-url'),
+      type: result.format || 'image',
+      size: result.bytes || (req.file ? req.file.size : 0)
     });
 
-    res.status(201).json({ media });
+    res.status(201).json({ media: mediaRecord, url: result.url });
   } catch (error) {
-    console.error('Media upload error:', error);
-    res.status(500).json({ error: 'Error uploading media' });
+    console.error('media upload error:', error);
+    res.status(500).json({ error: 'Upload failed: ' + error.message });
   }
 }
 
@@ -48,18 +39,37 @@ async function list(req, res) {
     const media = await listMediaByOwner(req.userId);
     res.json({ media });
   } catch (error) {
-    res.status(500).json({ error: 'Error fetching media' });
+    console.error('list media error:', error);
+    res.status(500).json({ error: 'Error listing media' });
+  }
+}
+
+async function get(req, res) {
+  try {
+    const media = await listMediaByOwner(req.userId);
+    const item = media.find(m => m.id === req.params.mediaId);
+    if (!item) return res.status(404).json({ error: 'Media not found' });
+    res.redirect(item.url);
+  } catch (error) {
+    res.status(500).json({ error: 'Error' });
   }
 }
 
 async function remove(req, res) {
   try {
-    const { mediaId } = req.params;
-    await deleteMediaById(mediaId);
+    const media = await listMediaByOwner(req.userId);
+    const item = media.find(m => m.id === req.params.mediaId);
+    if (!item) return res.status(404).json({ error: 'Media not found' });
+
+    if (item.cloudinaryPublicId) {
+      await cloudinaryService.deleteResource(item.cloudinaryPublicId);
+    }
+    await deleteMediaById(req.params.mediaId);
     res.json({ message: 'Media deleted' });
   } catch (error) {
+    console.error('delete media error:', error);
     res.status(500).json({ error: 'Error deleting media' });
   }
 }
 
-module.exports = { upload, list, remove };
+module.exports = { upload, list, get, remove };

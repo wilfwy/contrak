@@ -12,6 +12,8 @@ if (!admin.apps.length) {
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount)
     });
+    // Enable ignoreUndefinedProperties to prevent Firestore errors from undefined fields
+    admin.firestore().settings({ ignoreUndefinedProperties: true });
   } catch (e) {
     console.error('Firebase init failed (server will run without Firebase):', e.message);
   }
@@ -341,7 +343,7 @@ async function getOrderById(orderId, userId) {
 }
 
 async function listOrdersByUser(userId) {
-  const snapshot = await db
+  const snapshot = await getDb()
     .collection('orders')
     .where('userId', '==', userId)
     .get();
@@ -373,7 +375,7 @@ async function createTransaction(transactionData) {
 }
 
 async function listTransactionsByOrder(orderId) {
-  const snapshot = await db
+  const snapshot = await getDb()
     .collection('transactions')
     .where('orderId', '==', orderId)
     .get();
@@ -396,7 +398,7 @@ async function listTransactionsByOrder(orderId) {
 async function getTransactionByStripeSessionId(stripeSessionId) {
   if (!stripeSessionId) return null;
 
-  const snapshot = await db
+  const snapshot = await getDb()
     .collection('transactions')
     .where('stripeSessionId', '==', stripeSessionId)
     .limit(1)

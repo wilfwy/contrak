@@ -138,7 +138,15 @@ async function transcribeUpload(req, res) {
       return res.status(400).json({ error: 'Aucun fichier vidéo reçu' });
     }
 
-    const result = await transcribeFromFile(req.file.path, req.file.originalname);
+    // Write buffer to temp file for transcription processing
+    const fs = require('fs');
+    const path = require('path');
+    const tempDir = process.env.VERCEL ? '/tmp' : path.join(__dirname, '..', 'temp');
+    if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir, { recursive: true });
+    const tempPath = path.join(tempDir, req.file.originalname.replace(/[^a-zA-Z0-9._-]/g, '_'));
+    fs.writeFileSync(tempPath, req.file.buffer);
+
+    const result = await transcribeFromFile(tempPath, req.file.originalname);
     await recordAiUsage(req.userId, 'transcription');
     res.json(result);
   } catch (error) {

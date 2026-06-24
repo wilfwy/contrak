@@ -18,6 +18,7 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.104.1",
     "@ffmpeg-installer/ffmpeg": "^1.1.0",
+    "cloudinary": "^2.10.0",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
     "dotenv": "^16.6.1",
@@ -30,6 +31,7 @@
     "openai": "^6.44.0",
     "pdf-lib": "^1.17.1",
     "pdfkit": "^0.19.1",
+    "streamifier": "^0.1.1",
     "stripe": "^14.9.0",
     "youtube-dl-exec": "^3.1.8"
   },

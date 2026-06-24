@@ -53,10 +53,16 @@ async function getAiSuggestionsToday(userId) {
   today.setHours(0, 0, 0, 0);
   const snapshot = await getDb().collection('ai_usage')
     .where('userId', '==', userId)
-    .where('type', '==', 'suggestion')
-    .where('createdAt', '>=', admin.firestore.Timestamp.fromDate(today))
     .get();
-  return snapshot.size;
+  let count = 0;
+  snapshot.forEach(doc => {
+    const d = doc.data();
+    if (d.type === 'suggestion' && d.createdAt) {
+      const ts = d.createdAt.toDate ? d.createdAt.toDate() : new Date(d.createdAt);
+      if (ts >= today) count++;
+    }
+  });
+  return count;
 }
 
 async function getTranscriptionsThisMonth(userId) {
@@ -64,10 +70,16 @@ async function getTranscriptionsThisMonth(userId) {
   const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
   const snapshot = await getDb().collection('ai_usage')
     .where('userId', '==', userId)
-    .where('type', '==', 'transcription')
-    .where('createdAt', '>=', admin.firestore.Timestamp.fromDate(firstOfMonth))
     .get();
-  return snapshot.size;
+  let count = 0;
+  snapshot.forEach(doc => {
+    const d = doc.data();
+    if (d.type === 'transcription' && d.createdAt) {
+      const ts = d.createdAt.toDate ? d.createdAt.toDate() : new Date(d.createdAt);
+      if (ts >= firstOfMonth) count++;
+    }
+  });
+  return count;
 }
 
 async function getDynamicUsage(userId, feature) {
