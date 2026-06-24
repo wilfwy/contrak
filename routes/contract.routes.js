@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { authenticateFirebase, loadUserInfo, requireProPlan } = require('../middlewares/auth.middleware');
+const { quotaMiddleware } = require('../services/quota.service');
 const { validateContract } = require('../middlewares/validation.middleware');
 const contractController = require('../controllers/contract.controller');
 
@@ -12,7 +13,7 @@ router.use(loadUserInfo);
 router.get('/', contractController.listContracts);
 
 // Créer un nouveau contrat
-router.post('/', validateContract, contractController.createContract);
+router.post('/', quotaMiddleware('contracts'), validateContract, contractController.createContract);
 
 // Récupérer un contrat spécifique
 router.get('/:id', contractController.getContract);

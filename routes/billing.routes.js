@@ -9,8 +9,8 @@ router.post('/create-checkout-session', authenticateFirebase, loadUserInfo, bill
 // Page de succès après paiement
 router.get('/success', billingController.success);
 
-// Webhook Stripe
-router.post('/webhook', express.raw({ type: 'application/json' }), billingController.webhook);
+// Webhook Stripe (raw body parsed at app.js level)
+router.post('/webhook', billingController.webhook);
 
 // Page pour gérer l'abonnement
 router.get('/portal', authenticateFirebase, loadUserInfo, billingController.createPortalSession);

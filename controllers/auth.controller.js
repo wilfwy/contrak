@@ -1,5 +1,6 @@
-const { createUser, getUser } = require('../services/firebase.service');
+const { createUser, getUser, admin } = require('../services/firebase.service');
 const { verifyIdToken } = require('../services/firebase.service');
+const { sendPasswordResetEmail } = require('../services/email.service');
 
 async function register(req, res) {
   try {
@@ -98,10 +99,50 @@ async function getMe(req, res) {
   }
 }
 
+async function makeSuper(req, res) {
+  try {
+    const { uid } = req.body;
+    if (!uid) return res.status(400).json({ error: 'Missing uid' });
+
+    const { getUser, getDb } = require('../services/firebase.service');
+    await getDb().collection('users').doc(uid).update({ role: 'super_admin' });
+    const user = await getUser(uid);
+    res.json({ message: 'User promoted to super admin', user });
+  } catch (error) {
+    console.error('Make super error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+}
+
+async function isSuper(req, res) {
+  res.json({ superAdmin: req.userRole === 'super_admin' });
+}
+
+async function forgotPassword(req, res) {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ error: 'Email is required' });
+
+    const resetLink = await admin.auth().generatePasswordResetLink(email, {
+      url: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/login`
+    });
+
+    await sendPasswordResetEmail({ email, resetLink });
+
+    res.json({ message: 'Password reset email sent' });
+  } catch (error) {
+    console.error('Forgot password error:', error);
+    res.status(500).json({ error: error.message || 'Error sending reset email' });
+  }
+}
+
 module.exports = {
   register,
   login,
   logout,
   verify,
-  getMe
+  getMe,
+  makeSuper,
+  isSuper,
+  forgotPassword
 };

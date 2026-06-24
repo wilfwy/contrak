@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Products - Contrak</title>
+  <link rel="stylesheet" href="/style.css">
+  <style>
+    .products-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
+    .product-card { background: var(--card-bg); border: 1px solid var(--border); backdrop-filter: blur(10px); border-radius: 12px; padding: 1.5rem; margin-bottom: 1rem; }
+    .product-card-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem; }
+    .product-card-header h3 { font-size: 1.25rem; color: var(--green-100); }
+    .product-meta { display: flex; gap: 1rem; color: var(--text-muted); font-size: 0.9rem; margin-bottom: 0.75rem; flex-wrap: wrap; }
+    .product-meta span { display: inline-flex; align-items: center; gap: 0.25rem; }
+    .status-badge { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; }
+    .status-draft { background: rgba(251,191,36,0.15); color: #FBBF24; }
+    .status-published { background: rgba(52,211,153,0.15); color: #34D399; }
+    .version-item { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0.75rem; background: rgba(52,211,153,0.03); border: 1px solid var(--border); border-radius: 8px; margin-top: 0.5rem; color: var(--green-200); }
+    .version-item + .version-item { margin-top: 0.25rem; }
+    .empty-products { text-align: center; padding: 3rem; color: var(--text-muted); }
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+    .modal-overlay.open { display: flex; }
+    .modal { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 2rem; width: 90%; max-width: 560px; max-height: 90vh; overflow-y: auto; }
+    .modal h2 { color: var(--green-100); margin-bottom: 1.5rem; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .copy-link { cursor: pointer; color: var(--green-400); text-decoration: underline; font-size: 0.85rem; }
+    .copy-link:hover { color: var(--green-300); }
+    .order-item { display: flex; justify-content: space-between; align-items: center; padding: 1rem; border-bottom: 1px solid var(--border); color: var(--green-200); }
+    .order-item:last-child { border-bottom: none; }
+    .order-status { font-size: 0.8rem; font-weight: 600; padding: 0.2rem 0.6rem; border-radius: 20px; }
+    .order-paid { background: rgba(52,211,153,0.15); color: #34D399; }
+    .order-pending { background: rgba(251,191,36,0.15); color: #FBBF24; }
+    .order-failed { background: rgba(239,68,68,0.15); color: #EF4444; }
+    .tabs { display: flex; gap: 0; margin-bottom: 2rem; border-bottom: 1px solid var(--border); }
+    .tab { padding: 0.75rem 1.5rem; cursor: pointer; border: none; background: none; font-weight: 600; color: var(--text-muted); border-bottom: 2px solid transparent; margin-bottom: -1px; transition: color 0.2s, border-color 0.2s; }
+    .tab.active { color: var(--green-300); border-bottom-color: var(--green-500); }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    .modal input, .modal textarea, .modal select { background: var(--dark); border: 1px solid var(--border); color: var(--green-100); padding: 0.75rem; border-radius: 8px; width: 100%; }
+    .modal input:focus, .modal textarea:focus, .modal select:focus { outline: none; border-color: var(--green-500); box-shadow: 0 0 15px var(--accent-glow); }
+    .modal label { color: var(--green-200); font-weight: 600; font-size: 0.95rem; }
+  </style>
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="/" class="logo">CONTRAK.IO</a>
+      <button class="nav-toggle" aria-label="Open menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="nav-links">
+        <li><a href="/dashboard">Dashboard</a></li>
+        <li><a href="/ebooks">Ebooks</a></li>
+        <li><a href="/products" class="active">Products</a></li>
+        <li><a href="/pages">Pages</a></li>
+        <li><a href="/pricing">Pricing</a></li>
+        <li><span id="userPlan" class="plan-badge basic">BASIC</span></li>
+        <li><button id="logoutBtn" class="btn btn-outline">Log out</button></li>
+      </ul>
+    </nav>
+  </header>
+
+  <div class="container">
+    <div id="alertContainer"></div>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="products">Products</button>
+      <button class="tab" data-tab="orders">Orders</button>
+    </div>
+
+    <div class="tab-content active" id="tab-products">
+      <div class="products-toolbar">
+        <h1>My Products</h1>
+        <button class="btn btn-primary" id="newProductBtn">+ New Product</button>
+      </div>
+      <div id="productsList">
+        <div class="loading"><div class="spinner"></div><p>Loading...</p></div>
+      </div>
+    </div>
+
+    <div class="tab-content" id="tab-orders">
+      <h1>My Orders</h1>
+      <div id="ordersList">
+        <div class="loading"><div class="spinner"></div><p>Loading...</p></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="productModal">
+    <div class="modal">
+      <h2 id="modalTitle">New Product</h2>
+      <form id="productForm">
+        <div class="form-group">
+          <label>Title *</label>
+          <input type="text" id="prodTitle" required placeholder="My awesome ebook">
+        </div>
+        <div class="form-group">
+          <label>Slug *</label>
+          <input type="text" id="prodSlug" required placeholder="my-awesome-ebook">
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <textarea id="prodDesc" rows="3" placeholder="Short description of the product"></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Status</label>
+            <select id="prodStatus">
+              <option value="draft">Draft</option>
+              <option value="published">Published</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Cover Media ID</label>
+            <input type="text" id="prodCover" placeholder="Optional">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Linked Ebook</label>
+            <select id="prodEbookId" style="padding:0.75rem;">
+              <option value="">None (enter chapters in versions)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Landing Page (sales page)</label>
+            <select id="prodLandingPage" style="padding:0.75rem;">
+              <option value="">None (use default product page)</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:flex; gap:0.5rem; justify-content:flex-end; margin-top:1rem;">
+          <button type="button" class="btn btn-outline" id="cancelProductBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="versionModal">
+    <div class="modal">
+      <h2>New Version</h2>
+      <form id="versionForm">
+        <input type="hidden" id="verProductId">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Version Label *</label>
+            <input type="text" id="verLabel" required placeholder="v1.0">
+          </div>
+          <div class="form-group">
+            <label>Price *</label>
+            <div style="display:flex;align-items:center;gap:0.5rem;">
+              <input type="number" id="verPrice" required min="0" placeholder="9.99" step="0.01" style="flex:1;">
+              <span style="color:var(--text-muted);font-size:0.85rem;">Enter price like 9.99</span>
+            </div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Currency</label>
+            <select id="verCurrency">
+              <option value="EUR">EUR</option>
+              <option value="USD">USD</option>
+              <option value="GBP">GBP</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Status</label>
+            <select id="verStatus">
+              <option value="draft">Draft</option>
+              <option value="published">Published</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Marketing Copy (HTML supported)</label>
+          <textarea id="verMarketing" rows="3" placeholder="Describe what customers get with this version"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Ebook Content</label>
+          <div id="chaptersContainer">
+            <div class="chapter-item" style="border:1px solid var(--border);border-radius:8px;padding:1rem;margin-bottom:0.75rem;background:rgba(52,211,153,0.03);">
+              <div class="form-group" style="margin-bottom:0.5rem;">
+                <input type="text" class="chapter-title" placeholder="Chapter title (e.g. Introduction)" style="width:100%;padding:0.6rem;background:var(--dark);border:1px solid var(--border);color:var(--green-100);border-radius:6px;">
+              </div>
+              <div class="form-group">
+                <textarea class="chapter-content" rows="4" placeholder="Write your chapter content here..." style="width:100%;padding:0.6rem;background:var(--dark);border:1px solid var(--border);color:var(--green-100);border-radius:6px;"></textarea>
+              </div>
+              <button type="button" class="btn btn-small btn-outline remove-chapter" style="margin-top:0.25rem;font-size:0.8rem;color:#EF4444;border-color:#EF4444;" onclick="removeChapter(this)">Remove chapter</button>
+            </div>
+          </div>
+          <button type="button" class="btn btn-small btn-primary" onclick="addChapter()" style="margin-top:0.5rem;font-size:0.9rem;">+ Add Chapter</button>
+          <p style="color:var(--text-muted);font-size:0.85rem;margin-top:0.5rem;">Each chapter becomes a section in your ebook PDF. You can reorder chapters by removing and re-adding them.</p>
+        </div>
+        <div style="display:flex; gap:0.5rem; justify-content:flex-end; margin-top:1rem;">
+          <button type="button" class="btn btn-outline" id="cancelVersionBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      const toggle = document.querySelector('.nav-toggle');
+      const links = document.querySelector('.nav-links');
+      if (toggle && links) {
+        toggle.addEventListener('click', function() {
+          const isOpen = links.classList.toggle('nav-links--open');
+          toggle.classList.toggle('nav-toggle--open', isOpen);
+          toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        });
+      }
+    })();
+
+    let currentUser = null;
+
+    async function checkAuth() {
+      try {
+        const r = await fetch('/api/auth/me', { credentials: 'include' });
+        if (!r.ok) { window.location.href = '/login'; return; }
+        const d = await r.json();
+        currentUser = d.user;
+        const badge = document.getElementById('userPlan');
+        if (currentUser.plan === 'pro') {
+          badge.textContent = 'PRO';
+          badge.className = 'plan-badge pro';
+        } else {
+          badge.textContent = 'BASIC';
+          badge.className = 'plan-badge basic';
+        }
+        loadProducts();
+        loadOrders();
+      } catch(e) { window.location.href = '/login'; }
+    }
+
+    async function api(path, opts = {}) {
+      const r = await fetch(path, { credentials: 'include', headers: { 'Content-Type': 'application/json' }, ...opts });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error || 'Request failed');
+      return d;
+    }
+
+    let editingProductId = null;
+
+    async function loadProducts() {
+      try {
+        const d = await api('/api/products');
+        const list = document.getElementById('productsList');
+        const products = d.products || [];
+        if (products.length === 0) {
+          list.innerHTML = '<div class="empty-products"><p>No products yet.</p><button class="btn btn-primary" onclick="openNewProduct()" style="margin-top:1rem;">+ Create your first product</button></div>';
+          return;
+        }
+        list.innerHTML = products.map(p => {
+          try {
+            const statusClass = p.status === 'published' ? 'status-published' : 'status-draft';
+            const versionsHtml = (p.versions && p.versions.length)
+              ? p.versions.map(v => {
+                  const checkoutUrl = window.location.origin + '/p/' + (p.slug || p.id) + '?version=' + v.id;
+                  const downloadUrl = '/api/exports/product-versions/' + v.id;
+                  const vStatusClass = v.status === 'published' ? 'status-published' : 'status-draft';
+                  return '<div class="version-item"><div><strong>' + (v.versionLabel || '') + '</strong> · ' + ((v.price || 0)/100).toFixed(2) + ' ' + (v.currency || 'EUR') + ' <span class="status-badge ' + vStatusClass + '">' + v.status + '</span></div><div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;"><a href="' + downloadUrl + '" class="btn btn-small btn-primary" download style="font-size:0.8rem;padding:6px 12px;">PDF</a><span class="copy-link" onclick="copyToClipboard(\'' + checkoutUrl.replace(/'/g, '') + '\')">Copy link</span><button class="btn btn-small btn-outline" onclick="deleteVersion(\'' + p.id + '\',\'' + v.id + '\')">Delete</button></div></div>';
+                }).join('')
+              : '<p style="color:var(--text-muted);font-size:0.9rem;padding:0.5rem 0;">No versions yet.</p>';
+
+            return '<div class="product-card"><div class="product-card-header"><div><h3>' + (p.title || 'Untitled') + '</h3><div class="product-meta"><span>Slug: ' + (p.slug || p.id) + '</span><span>Created: ' + (p.createdAt ? new Date(p.createdAt).toLocaleDateString('en-GB') : '—') + '</span><span class="status-badge ' + statusClass + '">' + p.status + '</span></div></div><div style="display:flex; gap:0.5rem;"><button class="btn btn-small btn-primary" onclick="openNewVersion(\'' + p.id + '\')">+ Version</button><button class="btn btn-small btn-outline" onclick="editProduct(\'' + p.id + '\')">Edit</button><button class="btn btn-small btn-outline" onclick="deleteProduct(\'' + p.id + '\')">Delete</button></div></div><div style="margin-top:0.5rem;"><label style="font-size:0.85rem;font-weight:600;color:var(--text-muted);">Versions:</label>' + versionsHtml + '</div></div>';
+          } catch(e) {
+            console.error('Error rendering product card:', p, e);
+            return '';
+          }
+        }).join('');
+      } catch(e) {
+        document.getElementById('productsList').innerHTML = '<div class="alert alert-error">' + e.message + '</div>';
+      }
+    }
+
+    function openNewProduct() {
+      editingProductId = null;
+      document.getElementById('modalTitle').textContent = 'New Product';
+      document.getElementById('productForm').reset();
+      populateSelectors();
+      document.getElementById('productModal').classList.add('open');
+    }
+
+    async function populateSelectors(selectedEbookId, selectedLandingSlug) {
+      // Fetch ebooks
+      try {
+        const d = await api('/api/ebooks');
+        const ebooks = d.ebooks || [];
+        const sel = document.getElementById('prodEbookId');
+        sel.innerHTML = '<option value="">None (enter chapters in versions)</option>' +
+          ebooks.map(e => '<option value="' + (e.ebookId || '') + '" ' + ((e.ebookId || '') === (selectedEbookId || '') ? 'selected' : '') + '>' + (e.title || 'Untitled') + '</option>').join('');
+      } catch(e) { console.error('Failed to load ebooks', e); }
+
+      // Fetch pages
+      try {
+        const d = await api('/api/pages');
+        const pages = d.pages || [];
+        const sel = document.getElementById('prodLandingPage');
+        sel.innerHTML = '<option value="">None (use default product page)</option>' +
+          pages.map(p => '<option value="' + (p.slug || '') + '" ' + ((p.slug || '') === (selectedLandingSlug || '') ? 'selected' : '') + '>' + (p.title || 'Untitled') + '</option>').join('');
+      } catch(e) { console.error('Failed to load pages', e); }
+    }
+
+    async function editProduct(id) {
+      try {
+        const d = await api('/api/products/' + id);
+        const p = d.product;
+        editingProductId = id;
+        document.getElementById('modalTitle').textContent = 'Edit Product';
+        document.getElementById('prodTitle').value = p.title || '';
+        document.getElementById('prodSlug').value = p.slug || '';
+        document.getElementById('prodDesc').value = p.description || '';
+        document.getElementById('prodStatus').value = p.status || 'draft';
+        document.getElementById('prodCover').value = p.coverMediaId || '';
+        await populateSelectors(p.ebookId, p.landingPageSlug);
+        document.getElementById('productModal').classList.add('open');
+      } catch(e) { showAlert('error', e.message); }
+    }
+
+    document.getElementById('productForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const ebookIdVal = document.getElementById('prodEbookId').value;
+      const landingSlugVal = document.getElementById('prodLandingPage').value;
+      const payload = {
+        title: document.getElementById('prodTitle').value,
+        slug: document.getElementById('prodSlug').value,
+        description: document.getElementById('prodDesc').value || null,
+        status: document.getElementById('prodStatus').value,
+        coverMediaId: document.getElementById('prodCover').value || null,
+        ebookId: ebookIdVal || null,
+        landingPageSlug: landingSlugVal || null
+      };
+      try {
+        if (editingProductId) {
+          await api('/api/products/' + editingProductId, { method: 'PUT', body: JSON.stringify(payload) });
+        } else {
+          await api('/api/products', { method: 'POST', body: JSON.stringify(payload) });
+        }
+        document.getElementById('productModal').classList.remove('open');
+        showAlert('success', editingProductId ? 'Product updated!' : 'Product created!');
+        try { loadProducts(); } catch(e) { window.location.href = '/products'; }
+      } catch(e) { showAlert('error', e.message); }
+    });
+
+    document.getElementById('cancelProductBtn').addEventListener('click', function() {
+      document.getElementById('productModal').classList.remove('open');
+    });
+
+    document.getElementById('newProductBtn').addEventListener('click', openNewProduct);
+
+    async function deleteProduct(id) {
+      if (!confirm('Delete this product and all its versions?')) return;
+      try {
+        await api('/api/products/' + id, { method: 'DELETE' });
+        showAlert('success', 'Product deleted');
+        loadProducts();
+      } catch(e) { showAlert('error', e.message); }
+    }
+
+    function openNewVersion(productId) {
+      document.getElementById('verProductId').value = productId;
+      document.getElementById('versionForm').reset();
+      document.getElementById('versionModal').classList.add('open');
+    }
+
+    function addChapter() {
+      const container = document.getElementById('chaptersContainer');
+      const div = document.createElement('div');
+      div.className = 'chapter-item';
+      div.style.cssText = 'border:1px solid var(--border);border-radius:8px;padding:1rem;margin-bottom:0.75rem;background:rgba(52,211,153,0.03);';
+      div.innerHTML = '<div class="form-group" style="margin-bottom:0.5rem;"><input type="text" class="chapter-title" placeholder="Chapter title (e.g. Introduction)" style="width:100%;padding:0.6rem;background:var(--dark);border:1px solid var(--border);color:var(--green-100);border-radius:6px;"></div><div class="form-group"><textarea class="chapter-content" rows="4" placeholder="Write your chapter content here..." style="width:100%;padding:0.6rem;background:var(--dark);border:1px solid var(--border);color:var(--green-100);border-radius:6px;"></textarea></div><button type="button" class="btn btn-small btn-outline remove-chapter" style="margin-top:0.25rem;font-size:0.8rem;color:#EF4444;border-color:#EF4444;" onclick="removeChapter(this)">Remove chapter</button>';
+      container.appendChild(div);
+    }
+
+    function removeChapter(btn) {
+      const container = document.getElementById('chaptersContainer');
+      if (container.children.length <= 1) {
+        showAlert('error', 'You need at least one chapter');
+        return;
+      }
+      btn.closest('.chapter-item').remove();
+    }
+
+    document.getElementById('versionForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const productId = document.getElementById('verProductId').value;
+      const chapterEls = document.querySelectorAll('#chaptersContainer .chapter-item');
+      const chapters = Array.from(chapterEls).map(el => ({
+        title: el.querySelector('.chapter-title').value.trim() || 'Untitled Chapter',
+        content: el.querySelector('.chapter-content').value.trim() || ''
+      })).filter(ch => ch.content);
+      const priceInput = parseFloat(document.getElementById('verPrice').value);
+      const payload = {
+        versionLabel: document.getElementById('verLabel').value,
+        price: Math.round(priceInput * 100), // convert to cents
+        currency: document.getElementById('verCurrency').value,
+        status: document.getElementById('verStatus').value,
+        marketingCopy: document.getElementById('verMarketing').value || null,
+        ebookPayload: chapters.length ? { chapters } : null
+      };
+      try {
+        await api('/api/products/' + productId + '/versions', { method: 'POST', body: JSON.stringify(payload) });
+        document.getElementById('versionModal').classList.remove('open');
+        showAlert('success', 'Version created!');
+        loadProducts();
+      } catch(e) { showAlert('error', e.message); }
+    });
+
+    document.getElementById('cancelVersionBtn').addEventListener('click', function() {
+      document.getElementById('versionModal').classList.remove('open');
+    });
+
+    async function deleteVersion(productId, versionId) {
+      if (!confirm('Delete this version?')) return;
+      try {
+        await api('/api/products/' + productId + '/versions/' + versionId, { method: 'DELETE' });
+        showAlert('success', 'Version deleted');
+        loadProducts();
+      } catch(e) { showAlert('error', e.message); }
+    }
+
+    async function loadOrders() {
+      try {
+        const d = await api('/api/orders');
+        const list = document.getElementById('ordersList');
+        const orders = d.orders || [];
+        if (orders.length === 0) {
+          list.innerHTML = '<div class="empty-products"><p>No orders yet. When customers buy your products, orders will appear here.</p></div>';
+          return;
+        }
+        list.innerHTML = orders.map(function(o) {
+          const statusClass = 'order-' + o.status;
+          let downloadsHtml = '';
+          if (o.status === 'paid') {
+            if (o.items && Array.isArray(o.items) && o.items.length > 0) {
+              downloadsHtml = '<div style="margin-top:0.25rem;font-size:0.85rem;">' + o.items.map(function(item) {
+                return '<a href="/api/exports/product-versions/' + item.productVersionId + '" style="color:var(--green-400);">Download ' + (item.title || item.versionLabel || 'product') + '</a>';
+              }).join(' &middot; ') + '</div>';
+            } else if (o.productVersionId) {
+              downloadsHtml = '<div style="margin-top:0.25rem;font-size:0.85rem;"><a href="/api/exports/product-versions/' + o.productVersionId + '" style="color:var(--green-400);">Download PDF</a></div>';
+            }
+          }
+          var orderTotal = o.totals?.total ? ((o.totals.total/100).toFixed(2) + ' ' + (o.currency || 'EUR')) : '';
+          if (o.couponCode) orderTotal += ' <span style="color:#34D399;font-size:0.85rem;">(coupon: ' + o.couponCode + ')</span>';
+          return '<div class="order-item"><div><strong>Order #' + (o.id ? o.id.slice(0,8) : 'N/A') + '</strong><div style="color:var(--text-muted);font-size:0.85rem;">' + orderTotal + ' · ' + new Date(o.createdAt || Date.now()).toLocaleDateString('en-GB') + '</div>' + downloadsHtml + '</div><div style="display:flex; align-items:center; gap:0.5rem;"><span class="order-status ' + statusClass + '">' + o.status + '</span></div></div>';
+        }).join('');
+      } catch(e) {
+        document.getElementById('ordersList').innerHTML = '<div class="alert alert-error">' + e.message + '</div>';
+      }
+    }
+
+    document.querySelectorAll('.tab').forEach(function(tab) {
+      tab.addEventListener('click', function() {
+        document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
+        document.querySelectorAll('.tab-content').forEach(function(tc) { tc.classList.remove('active'); });
+        this.classList.add('active');
+        document.getElementById('tab-' + this.dataset.tab).classList.add('active');
+      });
+    });
+
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(function() {
+        showAlert('success', 'Link copied!');
+      }).catch(function() {
+        prompt('Copy this link:', text);
+      });
+    }
+
+    function showAlert(type, msg) {
+      var c = document.getElementById('alertContainer');
+      c.innerHTML = '<div class="alert alert-' + type + '">' + msg + '</div>';
+      setTimeout(function() { c.innerHTML = ''; }, 4000);
+    }
+
+    document.getElementById('logoutBtn').addEventListener('click', async function() {
+      await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+      window.location.href = '/';
+    });
+
+    checkAuth();
+  </script>
+</body>
+</html>

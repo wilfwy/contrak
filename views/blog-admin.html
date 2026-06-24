@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blog - Contrak</title>
+  <link rel="stylesheet" href="/style.css">
+  <style>
+    .blog-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
+    .article-card { background: var(--card-bg); border: 1px solid var(--border); backdrop-filter: blur(10px); border-radius: 12px; padding: 1.5rem; margin-bottom: 1rem; }
+    .article-card-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem; }
+    .article-card-header h3 { font-size: 1.25rem; color: var(--green-100); }
+    .article-meta { display: flex; gap: 1rem; color: var(--text-muted); font-size: 0.9rem; margin-bottom: 0.75rem; flex-wrap: wrap; }
+    .article-meta span { display: inline-flex; align-items: center; gap: 0.25rem; }
+    .status-badge { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; }
+    .status-draft { background: rgba(251,191,36,0.15); color: #FBBF24; }
+    .status-published { background: rgba(52,211,153,0.15); color: #34D399; }
+    .empty-articles { text-align: center; padding: 3rem; color: var(--text-muted); }
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+    .modal-overlay.open { display: flex; }
+    .modal { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 2rem; width: 90%; max-width: 620px; max-height: 90vh; overflow-y: auto; }
+    .modal h2 { color: var(--green-100); margin-bottom: 1.5rem; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .modal input, .modal textarea, .modal select { background: var(--dark); border: 1px solid var(--border); color: var(--green-100); padding: 0.75rem; border-radius: 8px; width: 100%; box-sizing: border-box; }
+    .modal input:focus, .modal textarea:focus, .modal select:focus { outline: none; border-color: var(--green-500); box-shadow: 0 0 15px var(--accent-glow); }
+    .modal label { color: var(--green-200); font-weight: 600; font-size: 0.95rem; display: block; margin-bottom: 0.3rem; }
+    .tag { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 12px; background: rgba(52,211,153,0.1); border: 1px solid var(--border); color: var(--green-300); font-size: 0.8rem; margin: 0.15rem; }
+  </style>
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="/" class="logo">CONTRAK.IO</a>
+      <button class="nav-toggle" aria-label="Open menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="nav-links">
+        <li><a href="/dashboard">Dashboard</a></li>
+        <li><a href="/ebooks">Ebooks</a></li>
+        <li><a href="/products">Products</a></li>
+        <li><a href="/pages">Pages</a></li>
+        <li><a href="/blog-admin" class="active">Blog</a></li>
+        <li><a href="/pricing">Pricing</a></li>
+        <li><span id="userPlan" class="plan-badge basic">BASIC</span></li>
+        <li><button id="logoutBtn" class="btn btn-outline">Log out</button></li>
+      </ul>
+    </nav>
+  </header>
+
+  <div class="container">
+    <div id="alertContainer"></div>
+
+    <div class="blog-toolbar">
+      <h1>My Articles</h1>
+      <button class="btn btn-primary" id="newArticleBtn">+ New Article</button>
+    </div>
+    <div id="articlesList">
+      <div class="loading"><div class="spinner"></div><p>Loading...</p></div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="articleModal">
+    <div class="modal">
+      <h2 id="modalTitle">New Article</h2>
+      <form id="articleForm">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Title *</label>
+            <input type="text" id="artTitle" required placeholder="Article title">
+          </div>
+          <div class="form-group">
+            <label>Slug *</label>
+            <input type="text" id="artSlug" required placeholder="article-slug">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Content *</label>
+          <textarea id="artContent" rows="8" placeholder="Article content (HTML supported)"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Excerpt</label>
+          <textarea id="artExcerpt" rows="2" placeholder="Short summary for cards"></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Cover Image URL</label>
+            <input type="text" id="artCover" placeholder="https://example.com/image.jpg">
+          </div>
+          <div class="form-group">
+            <label>Status</label>
+            <select id="artStatus">
+              <option value="draft">Draft</option>
+              <option value="published">Published</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Tags (comma-separated)</label>
+          <input type="text" id="artTags" placeholder="tech, tutorial, news">
+        </div>
+        <div style="display:flex; gap:0.5rem; justify-content:flex-end; margin-top:1rem;">
+          <button type="button" class="btn btn-outline" id="cancelArticleBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      const toggle = document.querySelector('.nav-toggle');
+      const links = document.querySelector('.nav-links');
+      if (toggle && links) {
+        toggle.addEventListener('click', function() {
+          const isOpen = links.classList.toggle('nav-links--open');
+          toggle.classList.toggle('nav-toggle--open', isOpen);
+          toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        });
+      }
+    })();
+
+    let currentUser = null;
+
+    async function checkAuth() {
+      try {
+        const r = await fetch('/api/auth/me', { credentials: 'include' });
+        if (!r.ok) { window.location.href = '/login'; return; }
+        const d = await r.json();
+        currentUser = d.user;
+        const badge = document.getElementById('userPlan');
+        if (currentUser.plan === 'pro') {
+          badge.textContent = 'PRO';
+          badge.className = 'plan-badge pro';
+        } else {
+          badge.textContent = 'BASIC';
+          badge.className = 'plan-badge basic';
+        }
+        loadArticles();
+      } catch(e) { window.location.href = '/login'; }
+    }
+
+    async function api(path, opts = {}) {
+      const r = await fetch(path, { credentials: 'include', headers: { 'Content-Type': 'application/json' }, ...opts });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error || 'Request failed');
+      return d;
+    }
+
+    let editingArticleId = null;
+
+    async function loadArticles() {
+      try {
+        const d = await api('/api/blog');
+        const list = document.getElementById('articlesList');
+        const articles = d.articles || [];
+        if (articles.length === 0) {
+          list.innerHTML = '<div class="empty-articles"><p>No articles yet.</p><button class="btn btn-primary" onclick="openNewArticle()" style="margin-top:1rem;">+ Write your first article</button></div>';
+          return;
+        }
+        list.innerHTML = articles.map(function(a) {
+          const statusClass = a.status === 'published' ? 'status-published' : 'status-draft';
+          const tagsHtml = (a.tags && a.tags.length) ? a.tags.map(function(t) { return '<span class="tag">' + esc(t) + '</span>'; }).join('') : '';
+          const previewUrl = window.location.origin + '/blog/' + (a.slug || a.id);
+          return '<div class="article-card">' +
+            '<div class="article-card-header">' +
+            '<div><h3>' + esc(a.title) + '</h3>' +
+            '<div class="article-meta">' +
+            '<span>Slug: ' + esc(a.slug || a.id) + '</span>' +
+            '<span>' + (a.createdAt ? new Date(a.createdAt).toLocaleDateString('en-GB') : '—') + '</span>' +
+            '<span class="status-badge ' + statusClass + '">' + a.status + '</span>' +
+            '</div></div>' +
+            '<div style="display:flex; gap:0.5rem;">' +
+            (a.status === 'published' ? '<a href="' + previewUrl + '" class="btn btn-small btn-outline" target="_blank">View</a>' : '') +
+            '<button class="btn btn-small btn-outline" onclick="editArticle(\'' + a.id + '\')">Edit</button>' +
+            '<button class="btn btn-small btn-outline" onclick="deleteArticle(\'' + a.id + '\')">Delete</button>' +
+            '</div></div>' +
+            (a.excerpt ? '<p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:0.5rem;">' + esc(a.excerpt) + '</p>' : '') +
+            (tagsHtml ? '<div>' + tagsHtml + '</div>' : '') +
+            '</div>';
+        }).join('');
+      } catch(e) {
+        document.getElementById('articlesList').innerHTML = '<div class="alert alert-error">' + e.message + '</div>';
+      }
+    }
+
+    function esc(s) {
+      if (!s) return '';
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+    }
+
+    function openNewArticle() {
+      editingArticleId = null;
+      document.getElementById('modalTitle').textContent = 'New Article';
+      document.getElementById('articleForm').reset();
+      document.getElementById('articleModal').classList.add('open');
+    }
+
+    async function editArticle(id) {
+      try {
+        const d = await api('/api/blog/' + id);
+        const a = d.article;
+        editingArticleId = id;
+        document.getElementById('modalTitle').textContent = 'Edit Article';
+        document.getElementById('artTitle').value = a.title || '';
+        document.getElementById('artSlug').value = a.slug || '';
+        document.getElementById('artContent').value = a.content || '';
+        document.getElementById('artExcerpt').value = a.excerpt || '';
+        document.getElementById('artCover').value = a.coverImageUrl || '';
+        document.getElementById('artStatus').value = a.status || 'draft';
+        document.getElementById('artTags').value = (a.tags || []).join(', ');
+        document.getElementById('articleModal').classList.add('open');
+      } catch(e) { showAlert('error', e.message); }
+    }
+
+    document.getElementById('articleForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const tags = document.getElementById('artTags').value.split(',').map(function(s) { return s.trim(); }).filter(Boolean);
+      const payload = {
+        title: document.getElementById('artTitle').value,
+        slug: document.getElementById('artSlug').value,
+        content: document.getElementById('artContent').value,
+        excerpt: document.getElementById('artExcerpt').value || null,
+        coverImageUrl: document.getElementById('artCover').value || null,
+        status: document.getElementById('artStatus').value,
+        tags: tags
+      };
+      try {
+        if (editingArticleId) {
+          await api('/api/blog/' + editingArticleId, { method: 'PUT', body: JSON.stringify(payload) });
+        } else {
+          await api('/api/blog', { method: 'POST', body: JSON.stringify(payload) });
+        }
+        document.getElementById('articleModal').classList.remove('open');
+        showAlert('success', editingArticleId ? 'Article updated!' : 'Article created!');
+        loadArticles();
+      } catch(e) { showAlert('error', e.message); }
+    });
+
+    document.getElementById('cancelArticleBtn').addEventListener('click', function() {
+      document.getElementById('articleModal').classList.remove('open');
+    });
+
+    document.getElementById('newArticleBtn').addEventListener('click', openNewArticle);
+
+    async function deleteArticle(id) {
+      if (!confirm('Delete this article?')) return;
+      try {
+        await api('/api/blog/' + id, { method: 'DELETE' });
+        showAlert('success', 'Article deleted');
+        loadArticles();
+      } catch(e) { showAlert('error', e.message); }
+    }
+
+    function showAlert(type, msg) {
+      var c = document.getElementById('alertContainer');
+      c.innerHTML = '<div class="alert alert-' + type + '">' + msg + '</div>';
+      setTimeout(function() { c.innerHTML = ''; }, 4000);
+    }
+
+    document.getElementById('logoutBtn').addEventListener('click', async function() {
+      await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+      window.location.href = '/';
+    });
+
+    checkAuth();
+  </script>
+</body>
+</html>

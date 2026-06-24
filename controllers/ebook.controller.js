@@ -8,12 +8,30 @@ const {
   BASIC_EBOOK_LIMIT,
   BASIC_MAX_CHAPTERS
 } = require('../services/ebook.service');
-const { createEbookRecord, countUserEbooks, getEbookByFileId } = require('../services/firebase.service');
+const {
+  transcribeFromUrl,
+  transcribeFromFile,
+  isSupportedVideoUrl,
+  hasOpenAIKey
+} = require('../services/transcription.service');
+const { createEbookRecord, countUserEbooks, listUserEbooks, getEbookByFileId } = require('../services/firebase.service');
+const { recordAiUsage, getAiSuggestionsToday, getTranscriptionsThisMonth } = require('../services/quota.service');
 const fs = require('fs');
+
+async function saveEbookRecord(req, { ebookId, title, type, chapters, source, author }) {
+  await createEbookRecord({
+    userId: req.userId,
+    ebookId,
+    title,
+    type: type || 'custom',
+    chapters: chapters || 0,
+    source: source || 'manual',
+    author: author || 'Contrak AI'
+  });
+}
 
 async function checkBasicEbookLimit(req, res) {
   if (req.userPlan !== 'basic') return true;
-
   const count = await countUserEbooks(req.userId);
   if (count >= BASIC_EBOOK_LIMIT) {
     res.status(403).json({
@@ -23,15 +41,6 @@ async function checkBasicEbookLimit(req, res) {
     return false;
   }
   return true;
-}
-
-async function saveEbookRecord(req, { ebookId, title, type }) {
-  await createEbookRecord({
-    userId: req.userId,
-    ebookId,
-    title,
-    type
-  });
 }
 
 async function getSuggestions(req, res) {
@@ -56,6 +65,7 @@ async function getAISuggestions(req, res) {
     }
 
     const suggestions = await generateAIEbookSuggestions(topic.trim());
+    await recordAiUsage(req.userId, 'suggestion');
     res.json({ suggestions });
   } catch (error) {
     console.error('Error getting AI ebook suggestions:', error);
@@ -65,10 +75,28 @@ async function getAISuggestions(req, res) {
 
 async function createFromVideo(req, res) {
   try {
-    const { title, description, content, videoUrl } = req.body;
+    let { title, description, content, videoUrl } = req.body;
 
-    if (!title || !content) {
-      return res.status(400).json({ error: 'Le titre et la transcription sont requis' });
+    if (!title && !videoUrl && !content) {
+      return res.status(400).json({ error: 'Fournissez un titre, une URL ou une transcription' });
+    }
+
+    if (!content && videoUrl) {
+      if (!isSupportedVideoUrl(videoUrl)) {
+        return res.status(400).json({ error: 'URL non supportée. Utilisez YouTube, TikTok ou Instagram.' });
+      }
+      const result = await transcribeFromUrl(videoUrl);
+      content = result.transcription;
+      if (!title) title = result.title;
+      if (!description) description = result.description;
+    }
+
+    if (!content) {
+      return res.status(400).json({ error: 'La transcription est requise. Extrayez-la depuis l\'URL ou uploadez une vidéo.' });
+    }
+
+    if (!title) {
+      return res.status(400).json({ error: 'Le titre est requis' });
     }
 
     const { filePath, ebookId } = await generateEbookFromVideo(
@@ -76,11 +104,46 @@ async function createFromVideo(req, res) {
       { allowAI: true }
     );
 
-    await saveEbookRecord(req, { ebookId, title, type: 'video' });
-    res.download(filePath, (title || 'ebook') + '.pdf');
+    await saveEbookRecord(req, { ebookId, title, type: 'video', source: 'video' });
+    res.json({ success: true, ebookId, title, message: 'Ebook créé avec succès' });
   } catch (error) {
     console.error('Error creating ebook from video:', error);
-    res.status(500).json({ error: 'Erreur lors de la création de l\'ebook' });
+    res.status(500).json({ error: error.message || 'Erreur lors de la création de l\'ebook' });
+  }
+}
+
+async function transcribeUrl(req, res) {
+  try {
+    const { url } = req.body;
+    if (!url || !url.trim()) {
+      return res.status(400).json({ error: 'L\'URL de la vidéo est requise' });
+    }
+
+    if (!isSupportedVideoUrl(url.trim())) {
+      return res.status(400).json({ error: 'URL non supportée. Utilisez YouTube, TikTok ou Instagram.' });
+    }
+
+    const result = await transcribeFromUrl(url.trim());
+    await recordAiUsage(req.userId, 'transcription');
+    res.json(result);
+  } catch (error) {
+    console.error('Error transcribing URL:', error);
+    res.status(500).json({ error: error.message || 'Erreur lors de la transcription' });
+  }
+}
+
+async function transcribeUpload(req, res) {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'Aucun fichier vidéo reçu' });
+    }
+
+    const result = await transcribeFromFile(req.file.path, req.file.originalname);
+    await recordAiUsage(req.userId, 'transcription');
+    res.json(result);
+  } catch (error) {
+    console.error('Error transcribing upload:', error);
+    res.status(500).json({ error: error.message || 'Erreur lors de la transcription du fichier' });
   }
 }
 
@@ -95,30 +158,22 @@ async function createCustom(req, res) {
     if (!(await checkBasicEbookLimit(req, res))) return;
 
     const isPro = req.userPlan === 'pro';
-    const maxChapters = isPro ? Infinity : BASIC_MAX_CHAPTERS;
-
-    if (!isPro && ebookData.chapters.length > BASIC_MAX_CHAPTERS) {
-      return res.status(403).json({
-        error: `Le plan BASIC permet ${BASIC_MAX_CHAPTERS} chapitres maximum. Passez au plan PRO pour plus de chapitres.`,
-        upgradeRequired: true
-      });
-    }
-
-    const hasEmptyChapters = ebookData.chapters.some(c => !c.content || !c.content.trim());
-    if (hasEmptyChapters && !isPro) {
-      return res.status(403).json({
-        error: 'La génération de contenu par IA est réservée au plan PRO. Remplissez les chapitres manuellement ou passez au PRO.',
-        upgradeRequired: true
-      });
-    }
+    const maxChapters = Infinity; // Removed chapter limit restriction
 
     const { filePath, ebookId } = await generateCustomEbook(ebookData, {
-      allowAI: isPro,
+      allowAI: true,
       maxChapters
     });
 
-    await saveEbookRecord(req, { ebookId, title: ebookData.title, type: 'custom' });
-    res.download(filePath, (ebookData.title || 'ebook') + '.pdf');
+    await saveEbookRecord(req, {
+      ebookId,
+      title: ebookData.title,
+      type: 'custom',
+      chapters: ebookData.chapters ? ebookData.chapters.length : 0,
+      source: ebookData.chapters ? 'manual' : 'ai',
+      author: ebookData.author
+    });
+    res.json({ success: true, ebookId, title: ebookData.title, message: 'Ebook créé avec succès' });
   } catch (error) {
     console.error('Error creating custom ebook:', error);
     res.status(500).json({ error: 'Erreur lors de la création de l\'ebook' });
@@ -148,13 +203,23 @@ async function exportEbook(req, res) {
 
 async function getEbookStats(req, res) {
   try {
-    const count = await countUserEbooks(req.userId);
     const isPro = req.userPlan === 'pro';
+    const limits = isPro
+      ? { ebooks: null, aiSuggestionsPerDay: null, transcriptionsPerMonth: null }
+      : { ebooks: BASIC_EBOOK_LIMIT, aiSuggestionsPerDay: 5, transcriptionsPerMonth: 5 };
+    const usage = {
+      ebooks: await countUserEbooks(req.userId),
+      aiSuggestionsPerDay: await getAiSuggestionsToday(req.userId),
+      transcriptionsPerMonth: await getTranscriptionsThisMonth(req.userId),
+    };
     res.json({
-      count,
+      count: usage.ebooks,
       limit: isPro ? null : BASIC_EBOOK_LIMIT,
       plan: req.userPlan,
-      aiEnabled: isPro && hasAnthropicKey()
+      aiEnabled: hasAnthropicKey(),
+      transcriptionEnabled: hasOpenAIKey() || hasAnthropicKey(),
+      limits,
+      usage
     });
   } catch (error) {
     console.error('Error getting ebook stats:', error);
@@ -162,11 +227,24 @@ async function getEbookStats(req, res) {
   }
 }
 
+async function listEbooks(req, res) {
+  try {
+    const ebooks = await listUserEbooks(req.userId);
+    res.json({ ebooks });
+  } catch (error) {
+    console.error('Error listing ebooks:', error);
+    res.status(500).json({ error: 'Erreur lors du chargement des ebooks' });
+  }
+}
+
 module.exports = {
   getSuggestions,
   getAISuggestions,
+  listEbooks,
   createFromVideo,
   createCustom,
   exportEbook,
-  getEbookStats
+  getEbookStats,
+  transcribeUrl,
+  transcribeUpload
 };

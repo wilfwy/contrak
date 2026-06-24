@@ -54,6 +54,7 @@ async function loadUserInfo(req, res, next) {
     
     req.userInfo = user;
     req.userPlan = user.plan || 'basic';
+    req.userRole = user.role || 'user';
     
     next();
   } catch (error) {
@@ -62,8 +63,16 @@ async function loadUserInfo(req, res, next) {
   }
 }
 
+function requireSuperAdmin(req, res, next) {
+  if (req.userRole !== 'super_admin') {
+    return res.status(403).json({ error: 'Access denied. Super admin only.' });
+  }
+  next();
+}
+
 module.exports = {
   authenticateFirebase,
   requireProPlan,
-  loadUserInfo
+  loadUserInfo,
+  requireSuperAdmin
 };

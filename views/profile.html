@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profile - Contrak</title>
+  <link rel="stylesheet" href="/style.css">
+  <style>
+    .profile-section { margin-bottom: 2rem; padding: 2rem; background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; }
+    .profile-section h2 { color: var(--green-100); margin-bottom: 1.5rem; }
+    .profile-info { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .info-item { padding: 1rem; background: rgba(52,211,153,0.03); border: 1px solid var(--border); border-radius: 8px; }
+    .info-item label { display: block; color: var(--text-muted); font-size: 0.85rem; margin-bottom: 0.25rem; }
+    .info-item .value { color: var(--green-100); font-weight: 600; font-size: 1.05rem; }
+    @media (max-width: 600px) { .profile-info { grid-template-columns: 1fr; } }
+    .danger-zone { border-color: rgba(239,68,68,0.3); }
+    .danger-zone h2 { color: #EF4444; }
+  </style>
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="/" class="logo">CONTRAK.IO</a>
+      <button class="nav-toggle" aria-label="Open menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="nav-links">
+        <li><a href="/dashboard">Dashboard</a></li>
+        <li><a href="/ebooks">Ebooks</a></li>
+        <li><a href="/products">Products</a></li>
+        <li><a href="/pages">Pages</a></li>
+        <li><a href="/pricing">Pricing</a></li>
+        <li><span id="userPlan" class="plan-badge basic">BASIC</span></li>
+        <li><button id="logoutBtn" class="btn btn-outline">Log out</button></li>
+      </ul>
+    </nav>
+  </header>
+
+  <div class="container">
+    <div id="alertContainer"></div>
+
+    <div class="profile-section">
+      <h2>Account</h2>
+      <div class="profile-info">
+        <div class="info-item">
+          <label>Email</label>
+          <div class="value" id="profileEmail">-</div>
+        </div>
+        <div class="info-item">
+          <label>Plan</label>
+          <div class="value" id="profilePlan">-</div>
+        </div>
+        <div class="info-item">
+          <label>User ID</label>
+          <div class="value" id="profileUid" style="font-size:0.85rem;word-break:break-all;">-</div>
+        </div>
+        <div class="info-item">
+          <label>Member since</label>
+          <div class="value" id="profileCreated">-</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="profile-section">
+      <h2>Usage</h2>
+      <div class="profile-info" id="usageInfo">
+        <div class="info-item"><label>Loading...</label><div class="value">-</div></div>
+      </div>
+    </div>
+
+    <div class="profile-section">
+      <h2>Settings</h2>
+      <div style="display:flex; gap:1rem; flex-wrap:wrap;">
+        <button id="manageBillingBtn" class="btn btn-outline">Manage Billing</button>
+        <button id="resetPasswordBtn" class="btn btn-outline">Reset Password</button>
+      </div>
+    </div>
+
+    <div class="profile-section danger-zone" style="display:none;" id="adminSection">
+      <h2>Super Admin</h2>
+      <p style="color:var(--text-muted);margin-bottom:1rem;">Promote another user to super admin by their UID.</p>
+      <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+        <input type="text" id="adminUid" placeholder="User UID" style="background:var(--dark);border:1px solid var(--border);color:var(--green-100);padding:0.75rem;border-radius:8px;flex:1;min-width:200px;">
+        <button id="makeSuperBtn" class="btn btn-primary">Make Super Admin</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      const toggle = document.querySelector('.nav-toggle');
+      const links = document.querySelector('.nav-links');
+      if (toggle && links) {
+        toggle.addEventListener('click', function() {
+          links.classList.toggle('nav-links--open');
+          toggle.classList.toggle('nav-toggle--open');
+          toggle.setAttribute('aria-expanded', toggle.classList.contains('nav-toggle--open') ? 'true' : 'false');
+        });
+      }
+    })();
+
+    let currentUser = null;
+
+    async function checkAuth() {
+      try {
+        const r = await fetch('/api/auth/me', { credentials: 'include' });
+        if (!r.ok) { window.location.href = '/login'; return; }
+        const d = await r.json();
+        currentUser = d.user;
+        document.getElementById('profileEmail').textContent = currentUser.email;
+        document.getElementById('profilePlan').textContent = currentUser.plan === 'pro' ? 'PRO' : 'BASIC';
+        document.getElementById('profileUid').textContent = currentUser.uid;
+        document.getElementById('profileCreated').textContent = currentUser.createdAt ? new Date(currentUser.createdAt).toLocaleDateString('en-GB') : 'N/A';
+
+        const badge = document.getElementById('userPlan');
+        if (currentUser.plan === 'pro') {
+          badge.textContent = 'PRO';
+          badge.className = 'plan-badge pro';
+        }
+
+        loadUsage();
+        checkSuperAdmin();
+      } catch(e) { window.location.href = '/login'; }
+    }
+
+    async function loadUsage() {
+      try {
+        const r = await fetch('/api/ebooks/stats', { credentials: 'include' });
+        if (r.ok) {
+          const d = await r.json();
+          const u = d.usage || {};
+          const limits = d.limits || {};
+          const container = document.getElementById('usageInfo');
+          container.innerHTML = '';
+          const items = [
+            { label: 'Ebooks', value: u.ebooks + (limits.ebooks ? ' / ' + limits.ebooks : ' (unlimited)') },
+            { label: 'AI suggestions today', value: u.aiSuggestionsPerDay + (limits.aiSuggestionsPerDay ? ' / ' + limits.aiSuggestionsPerDay : ' (unlimited)') },
+            { label: 'Transcriptions this month', value: u.transcriptionsPerMonth + (limits.transcriptionsPerMonth ? ' / ' + limits.transcriptionsPerMonth : ' (unlimited)') },
+          ];
+          items.forEach(function(item) {
+            container.innerHTML += '<div class="info-item"><label>' + item.label + '</label><div class="value">' + item.value + '</div></div>';
+          });
+        }
+      } catch(e) { console.error(e); }
+    }
+
+    async function checkSuperAdmin() {
+      try {
+        const r = await fetch('/api/auth/is-super', { credentials: 'include' });
+        if (r.ok) {
+          const d = await r.json();
+          if (d.superAdmin) {
+            document.getElementById('adminSection').style.display = 'block';
+          }
+        }
+      } catch(e) { /* not super admin */ }
+    }
+
+    document.getElementById('manageBillingBtn').addEventListener('click', async function() {
+      try {
+        const r = await fetch('/api/billing/portal', { method: 'POST', credentials: 'include' });
+        if (r.ok) {
+          const d = await r.json();
+          window.location.href = d.url;
+        } else {
+          const e = await r.json();
+          showAlert('error', e.error || 'Error accessing billing portal');
+        }
+      } catch(e) { showAlert('error', 'Please log in first'); }
+    });
+
+    document.getElementById('resetPasswordBtn').addEventListener('click', function() {
+      var email = currentUser ? currentUser.email : '';
+      if (!email) return;
+      firebase.auth().sendPasswordResetEmail(email).then(function() {
+        showAlert('success', 'Password reset email sent to ' + email);
+      }).catch(function(err) {
+        showAlert('error', err.message || 'Error sending reset email');
+      });
+    });
+
+    document.getElementById('makeSuperBtn').addEventListener('click', async function() {
+      const uid = document.getElementById('adminUid').value;
+      if (!uid) { showAlert('error', 'Enter a user UID'); return; }
+      try {
+        const r = await fetch('/api/auth/make-super', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ uid })
+        });
+        if (r.ok) {
+          const d = await r.json();
+          showAlert('success', 'User promoted to super admin!');
+          document.getElementById('adminUid').value = '';
+        } else {
+          const e = await r.json();
+          showAlert('error', e.error || 'Failed');
+        }
+      } catch(e) { showAlert('error', 'Error'); }
+    });
+
+    function showAlert(type, msg) {
+      const c = document.getElementById('alertContainer');
+      c.innerHTML = '<div class="alert alert-' + type + '">' + msg + '</div>';
+    }
+
+    document.getElementById('logoutBtn').addEventListener('click', async function() {
+      await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+      window.location.href = '/';
+    });
+
+    checkAuth();
+  </script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script>
+    firebase.initializeApp({
+      apiKey: "AIzaSyBcNnrFGwqJwNypY55bG0e-4v68tGzHSJY",
+      authDomain: "contrak-2025.firebaseapp.com",
+      projectId: "contrak-2025",
+      storageBucket: "contrak-2025.firebasestorage.app",
+      messagingSenderId: "889198533044",
+      appId: "1:889198533044:web:85054dd2b705e4a93818a2"
+    });
+  </script>
+</body>
+</html>

@@ -35,6 +35,86 @@ async function createCheckoutSession(userId, userEmail) {
 }
 
 /**
+ * ===== Commerce (digital product) =====
+ * MVP: paiement one-time pour une product_version
+ */
+function getFrontendUrl() {
+  return process.env.FRONTEND_URL || 'http://localhost:3000';
+}
+
+async function createDigitalCheckoutSession({
+  userId,
+  userEmail,
+  orderId,
+  productId,
+  productVersionId,
+  currency = 'eur',
+  amount,
+  successUrl: customSuccessUrl,
+  cancelUrl: customCancelUrl,
+  items
+}) {
+  if (!orderId) throw new Error('Missing orderId');
+  if (!userId) throw new Error('Missing userId');
+  if (!userEmail) throw new Error('Missing userEmail');
+  if (!items && !productVersionId && !productId) throw new Error('Missing productVersionId (or productId)');
+
+  const frontendUrl = getFrontendUrl();
+  const successUrl = customSuccessUrl || `${frontendUrl}/dashboard?payment=success&orderId=${orderId}`;
+  const cancelUrl = customCancelUrl || `${frontendUrl}/dashboard?payment=cancel`;
+
+  // If multi-item (cart), build line_items from items array
+  // Otherwise fallback to single-item mode for backward compat
+  let lineItems;
+  if (items && items.length > 0) {
+    lineItems = items.map(item => ({
+      price_data: {
+        currency: item.currency || 'eur',
+        product_data: {
+          name: item.title || item.versionLabel || 'Digital product',
+          description: item.versionLabel || ''
+        },
+        unit_amount: Number(item.price)
+      },
+      quantity: 1
+    }));
+  } else {
+    const normalizedAmount = amount != null ? Number(amount) : null;
+    if (!normalizedAmount || Number.isNaN(normalizedAmount)) {
+      throw new Error('Missing/invalid amount');
+    }
+    lineItems = [{
+      price_data: {
+        currency,
+        product_data: {
+          name: 'Contrak - Digital product',
+          description: 'Accès à votre version digitale'
+        },
+        unit_amount: normalizedAmount
+      },
+      quantity: 1
+    }];
+  }
+
+  const session = await stripe.checkout.sessions.create({
+    payment_method_types: ['card'],
+    line_items: lineItems,
+    mode: 'payment',
+    success_url: successUrl,
+    cancel_url: cancelUrl,
+    customer_email: userEmail,
+    metadata: {
+      userId,
+      orderId,
+      productId: productId || null,
+      productVersionId: productVersionId || null
+    }
+  });
+
+  return session;
+}
+
+/**
  * Vérifie et récupère une session Stripe
  */
 async function getSession(sessionId) {
@@ -77,6 +157,7 @@ async function createPortalSession(customerId, returnUrl) {
 
 module.exports = {
   createCheckoutSession,
+  createDigitalCheckoutSession,
   getSession,
   getOrCreateCustomer,
   createPortalSession

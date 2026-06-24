@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blog - Contrak</title>
+  <meta name="description" content="Articles about ebooks, AI content creation, and digital products">
+  <link rel="stylesheet" href="/style.css">
+  <style>
+    .blog-header { text-align: center; padding: 3rem 0; }
+    .blog-header h1 { font-size: 2.5rem; margin-bottom: 0.5rem; }
+    .blog-header p { color: var(--text-muted); font-size: 1.1rem; }
+    .blog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 1.5rem; }
+    .blog-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; transition: transform 0.3s, box-shadow 0.3s; backdrop-filter: blur(10px); }
+    .blog-card:hover { transform: translateY(-4px); box-shadow: 0 12px 30px rgba(0,0,0,0.4), 0 0 20px var(--accent-glow); border-color: var(--green-500); }
+    .blog-card-cover { width: 100%; height: 200px; object-fit: cover; background: linear-gradient(135deg, var(--green-800), var(--green-900)); }
+    .blog-card-body { padding: 1.5rem; }
+    .blog-card-body h2 { font-size: 1.25rem; margin-bottom: 0.5rem; color: var(--green-100); }
+    .blog-card-body h2 a { color: inherit; text-decoration: none; }
+    .blog-card-body h2 a:hover { color: var(--green-300); }
+    .blog-card-body p { color: var(--text-muted); font-size: 0.95rem; margin-bottom: 0.75rem; }
+    .blog-card-meta { display: flex; gap: 1rem; color: var(--text-muted); font-size: 0.85rem; align-items: center; }
+    .tag { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 12px; background: rgba(52,211,153,0.1); border: 1px solid var(--border); color: var(--green-300); font-size: 0.75rem; margin: 0.15rem; text-decoration: none; }
+    .loading-wrapper { text-align: center; padding: 4rem; }
+    .empty-state { text-align: center; padding: 4rem; color: var(--text-muted); }
+    .empty-state h2 { color: var(--green-200); margin-bottom: 0.5rem; }
+  </style>
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="/" class="logo">CONTRAK.IO</a>
+      <button class="nav-toggle" aria-label="Open menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="nav-links">
+        <li><a href="/">Home</a></li>
+        <li><a href="/blog" class="active">Blog</a></li>
+        <li><a href="/pricing">Pricing</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <div class="container">
+    <div class="blog-header">
+      <h1 class="gradient-text">Blog</h1>
+      <p>Articles about ebooks, AI content creation, and digital products</p>
+    </div>
+    <div id="blogList" class="blog-grid">
+      <div class="loading-wrapper"><div class="spinner"></div><p>Loading articles...</p></div>
+    </div>
+  </div>
+
+  <footer>
+    <p>&copy; 2024 Contrak. All rights reserved.</p>
+  </footer>
+
+  <script>
+    (function() {
+      const toggle = document.querySelector('.nav-toggle');
+      const links = document.querySelector('.nav-links');
+      if (toggle && links) {
+        toggle.addEventListener('click', function() {
+          const isOpen = links.classList.toggle('nav-links--open');
+          toggle.classList.toggle('nav-toggle--open', isOpen);
+          toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        });
+      }
+    })();
+
+    async function loadArticles() {
+      try {
+        const r = await fetch('/api/blog/public');
+        const d = await r.json();
+        if (!r.ok) throw new Error(d.error || 'Failed to load');
+        const list = document.getElementById('blogList');
+        const articles = d.articles || [];
+        if (articles.length === 0) {
+          list.innerHTML = '<div class="empty-state"><h2>No articles yet</h2><p>Check back soon for new content.</p></div>';
+          return;
+        }
+        list.innerHTML = articles.map(function(a) {
+          var coverStyle = a.coverImageUrl ? 'style="background-image:url(' + esc(a.coverImageUrl) + ');background-size:cover;background-position:center;"' : '';
+          var tagsHtml = (a.tags && a.tags.length) ? a.tags.map(function(t) { return '<span class="tag">' + esc(t) + '</span>'; }).join('') : '';
+          return '<div class="blog-card">' +
+            '<div class="blog-card-cover" ' + coverStyle + '></div>' +
+            '<div class="blog-card-body">' +
+            '<h2><a href="/blog/' + encodeURIComponent(a.slug || a.id) + '">' + esc(a.title) + '</a></h2>' +
+            '<div class="blog-card-meta"><span>' + formatDate(a.createdAt) + '</span></div>' +
+            (a.excerpt ? '<p>' + esc(a.excerpt) + '</p>' : '') +
+            (tagsHtml ? '<div>' + tagsHtml + '</div>' : '') +
+            '</div></div>';
+        }).join('');
+      } catch(e) {
+        document.getElementById('blogList').innerHTML = '<div class="empty-state"><h2>Could not load articles</h2><p>' + e.message + '</p></div>';
+      }
+    }
+
+    function esc(s) {
+      if (!s) return '';
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+    }
+
+    function formatDate(d) {
+      if (!d) return '';
+      var date = d.toDate ? d.toDate() : new Date(d);
+      return date.toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' });
+    }
+
+    loadArticles();
+  </script>
+</body>
+</html>

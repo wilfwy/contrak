@@ -18,17 +18,6 @@ async function listContracts(req, res) {
 
 async function createContract(req, res) {
   try {
-    const userPlan = req.userPlan || 'basic';
-    
-    if (userPlan === 'basic') {
-      const contractCount = await countUserContracts(req.userId);
-      if (contractCount >= 5) {
-        return res.status(403).json({ 
-          error: 'Limit reached for BASIC plan (maximum 5 contracts). Upgrade to PRO for unlimited contracts.' 
-        });
-      }
-    }
-
     const contractData = {
       userId: req.userId,
       type: req.body.type || 'prestation',
