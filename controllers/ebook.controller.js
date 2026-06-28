@@ -4,6 +4,8 @@ const {
   generateEbookFromVideo,
   generateCustomEbook,
   getEbookFilePath,
+  renderEbookPdf,
+  mergeDesign,
   hasAnthropicKey,
   BASIC_EBOOK_LIMIT,
   BASIC_MAX_CHAPTERS
@@ -16,6 +18,7 @@ const {
 } = require('../services/transcription.service');
 const { createEbookRecord, countUserEbooks, listUserEbooks, getEbookByFileId } = require('../services/firebase.service');
 const { recordAiUsage, getAiSuggestionsToday, getTranscriptionsThisMonth } = require('../services/quota.service');
+const PDFDocument = require('pdfkit');
 const fs = require('fs');
 
 async function saveEbookRecord(req, { ebookId, title, type, chapters, chaptersData, source, author }) {
@@ -198,15 +201,36 @@ async function exportEbook(req, res) {
       return res.status(404).json({ error: 'Ebook introuvable' });
     }
 
-    const ebookPath = getEbookFilePath(ebookId);
-    if (!fs.existsSync(ebookPath)) {
-      return res.status(404).json({ error: 'Fichier PDF introuvable' });
+    const chapters = (ebook.chaptersData || []).map(function(ch) {
+      if (typeof ch === 'string') return { title: ch, content: '' };
+      return { title: ch.title || '', content: ch.content || '' };
+    });
+
+    if (chapters.length === 0) {
+      return res.status(404).json({ error: 'Aucun contenu dans cet ebook' });
     }
 
-    res.download(ebookPath, (ebook.title || 'ebook') + '.pdf');
+    const filename = encodeURIComponent((ebook.title || 'ebook').replace(/[^a-zA-Z0-9]/g, '_')) + '.pdf';
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'attachment; filename="' + filename + '"');
+
+    const doc = new PDFDocument({
+      size: 'A4',
+      margins: { top: 60, bottom: 60, left: 70, right: 70 },
+      info: {
+        Producer: 'Contrak.io',
+        Creator: 'Contrak.io',
+        Title: ebook.title || 'Ebook'
+      }
+    });
+
+    doc.pipe(res);
+    await renderEbookPdf(doc, ebook.title || 'Ebook', ebook.description || null, ebook.author || 'Contrak AI', chapters, ebook.design || ebook.designSettings);
   } catch (error) {
     console.error('Error exporting ebook:', error);
-    res.status(500).json({ error: 'Erreur lors de l\'export de l\'ebook' });
+    if (!res.headersSent) {
+      res.status(500).json({ error: 'Erreur lors de l\'export de l\'ebook' });
+    }
   }
 }
 

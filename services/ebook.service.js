@@ -400,6 +400,8 @@ module.exports = {
   generateCustomEbook,
   getEbookFilePath,
   generateProductVersionPdf,
+  renderEbookPdf,
+  mergeDesign,
   hasAnthropicKey,
   BASIC_EBOOK_LIMIT: 3,
   BASIC_MAX_CHAPTERS: 4
