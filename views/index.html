@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contrak - Transform your videos into ebooks with AI</title>
+  <meta name="description" content="Create professional ebooks from your YouTube, TikTok, and Instagram videos with AI. Generate contracts and landing pages too.">
+  <meta property="og:title" content="Contrak - AI Ebook Generator">
+  <meta property="og:description" content="Transform your videos into professional ebooks with AI">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="stylesheet" href="/style.css">
+  <style>
+    .ebook-hero-subtitle { font-size: 1.15rem; max-width: 600px; margin: 1rem auto; opacity: 0.85; }
+    .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin: 2rem 0; }
+    .step { text-align: center; padding: 1.5rem; }
+    .step-number { display: inline-flex; align-items: center; justify-content: center; width: 48px; height: 48px; border-radius: 50%; background: var(--green-700); color: #fff; font-weight: bold; font-size: 1.25rem; margin-bottom: 1rem; box-shadow: 0 0 20px var(--accent-glow); }
+    .step h3 { color: var(--green-300); margin-bottom: 0.5rem; font-size: 1.1rem; }
+    .step p { font-size: 0.9rem; color: var(--text-muted); }
+    .feature-icon { font-size: 2.5rem; margin-bottom: 0.75rem; display: block; }
+    .cta-section { text-align: center; padding: 4rem 0; }
+    .cta-section h2 { font-size: 2.5rem; margin-bottom: 1rem; }
+    .cta-section p { margin-bottom: 2rem; font-size: 1.1rem; }
+    .brand-marquee { display: flex; gap: 3rem; white-space: nowrap; animation: marquee 20s linear infinite; }
+    .brand-logo { color: var(--green-400); font-weight: 600; letter-spacing: 0.5px; font-size: 0.9rem; }
+    @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+    .brand-strip { overflow: hidden; padding: 1rem 0; border-radius: 12px; border: 1px solid var(--border); background: rgba(52,211,153,0.03); }
+  </style>
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="/" class="logo">CONTRAK.IO</a>
+      <button class="nav-toggle" aria-label="Open menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="nav-links">
+        <li><a href="/ebooks">Ebooks</a></li>
+        <li><a href="/products">Products</a></li>
+        <li><a href="/pages">Pages</a></li>
+        <li><a href="/pricing">Pricing</a></li>
+        <li><a href="/login">Log in</a></li>
+        <li><a href="/register" class="btn-cta">Start creating <span class="icon">→</span></a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <section class="hero hero-large">
+    <div class="container">
+      <div class="pill reveal"> AI-Powered Ebook Generator</div>
+      <h1 class="gradient-text reveal" style="font-size: 3.5rem; margin-top: 1.5rem;">Turn videos into ebooks in seconds</h1>
+      <p class="reveal ebook-hero-subtitle">Upload a YouTube, TikTok, or Instagram video — our AI transcribes, structures, and generates a professional ebook with chapters. No writing required.</p>
+      <div class="reveal" style="margin-top: 2.5rem; display: inline-flex; gap: 1rem;">
+        <a href="/register" class="btn btn-primary" style="font-size: 1.1rem; padding: 14px 32px;">Create your first ebook free</a>
+        <a href="/ebooks" class="btn btn-outline" style="font-size: 1.1rem; padding: 14px 32px;">See how it works</a>
+      </div>
+      <div class="section-divider"></div>
+      <div class="brand-strip reveal">
+        <div class="brand-marquee">
+          <span class="brand-logo"> YouTube → Ebook</span>
+          <span class="brand-logo"> TikTok → Ebook</span>
+          <span class="brand-logo"> Instagram → Ebook</span>
+          <span class="brand-logo"> AI Transcription</span>
+          <span class="brand-logo"> Smart Chapters</span>
+          <span class="brand-logo"> PDF Export</span>
+          <span class="brand-logo"> No writing needed</span>
+          <span class="brand-logo"> YouTube → Ebook</span>
+          <span class="brand-logo"> TikTok → Ebook</span>
+          <span class="brand-logo"> Instagram → Ebook</span>
+          <span class="brand-logo"> AI Transcription</span>
+          <span class="brand-logo"> Smart Chapters</span>
+          <span class="brand-logo"> PDF Export</span>
+          <span class="brand-logo"> No writing needed</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="container">
+    <!-- How it works -->
+    <section class="section" style="text-align: center;">
+      <h2 class="gradient-text reveal" style="font-size: 2.5rem; margin-bottom: 0.5rem;">How it works</h2>
+      <p class="reveal" style="color: var(--text-muted); margin-bottom: 2rem;">Three simple steps to create your ebook</p>
+      <div class="steps">
+        <div class="step reveal">
+          <div class="step-number">1</div>
+          <h3>Paste a video URL</h3>
+          <p>From YouTube, TikTok, or Instagram — or upload a file directly</p>
+        </div>
+        <div class="step reveal">
+          <div class="step-number">2</div>
+          <h3>AI processes it</h3>
+          <p>We transcribe the audio and structure it into chapters using Claude AI</p>
+        </div>
+        <div class="step reveal">
+          <div class="step-number">3</div>
+          <h3>Download your ebook</h3>
+          <p>Get a professional PDF with chapters, ready to publish or sell</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features -->
+    <section class="section" style="text-align: center;">
+      <h2 class="gradient-text reveal" style="font-size: 2.5rem; margin-bottom: 2rem;">Everything you need</h2>
+      <div class="feature-grid">
+        <div class="interactive-card glass-card reveal">
+          <span class="feature-icon"></span>
+          <h3>Video to Ebook</h3>
+          <p>Convert any YouTube, TikTok, or Instagram video into a structured ebook automatically.</p>
+        </div>
+        <div class="interactive-card glass-card reveal">
+          <span class="feature-icon"></span>
+          <h3>AI-Powered</h3>
+          <p>Claude AI transcribes, summarizes, and organizes your content into coherent chapters.</p>
+        </div>
+        <div class="interactive-card glass-card reveal">
+          <span class="feature-icon"></span>
+          <h3>Smart Suggestions</h3>
+          <p>Get AI-generated ebook ideas and outlines based on your topic of choice.</p>
+        </div>
+        <div class="interactive-card glass-card reveal">
+          <span class="feature-icon"></span>
+          <h3>Custom Creation</h3>
+          <p>Define your own title, author, and chapters — AI fills in the content if you want.</p>
+        </div>
+        <div class="interactive-card glass-card reveal">
+          <span class="feature-icon"></span>
+          <h3>PDF Export</h3>
+          <p>Professional PDF output with chapter titles, content, and clean formatting.</p>
+        </div>
+        <div class="interactive-card glass-card reveal">
+          <span class="feature-icon"></span>
+          <h3>Sell Your Ebooks</h3>
+          <p>Create product pages, set prices, and sell your ebooks directly through Stripe.</p>
+        </div>
+        <div class="interactive-card glass-card reveal">
+          <span class="feature-icon"></span>
+          <h3>Contracts</h3>
+          <p>Generate professional freelance service contracts in PDF format.</p>
+        </div>
+        <div class="interactive-card glass-card reveal">
+          <span class="feature-icon"></span>
+          <h3>Landing Pages</h3>
+          <p>Build beautiful landing pages for your products with the built-in page builder.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Testimonials -->
+    <section class="section">
+      <h2 class="gradient-text reveal" style="text-align: center; font-size: 2rem; margin-bottom: 1.5rem;">Trusted by creators</h2>
+      <div class="testimonial-grid">
+        <div class="testimonial-card reveal">
+          <p>"I turned my YouTube course into an ebook in 5 minutes. The AI transcription is incredibly accurate."</p>
+          <div class="author">Content Creator · 10K+ subscribers</div>
+        </div>
+        <div class="testimonial-card reveal">
+          <p>"Finally a tool that lets me repurpose my video content into sellable ebooks. Game changer."</p>
+          <div class="author">Online Coach · Fitness Industry</div>
+        </div>
+        <div class="testimonial-card reveal">
+          <p>"The AI chapter structuring saved me hours of manual work. The PDF output looks professional."</p>
+          <div class="author">Freelance · Digital Products</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="section">
+      <h2 class="gradient-text reveal" style="text-align: center; font-size: 2rem; margin-bottom: 1rem;">Frequently asked questions</h2>
+      <div class="faq">
+        <div class="faq-item reveal">
+          <button class="faq-question">Which video platforms are supported? <span>+</span></button>
+          <div class="faq-answer"><p>YouTube, TikTok, and Instagram. You can also upload video or audio files directly (MP4, MOV, MP3, WAV, etc.).</p></div>
+        </div>
+        <div class="faq-item reveal">
+          <button class="faq-question">How does the AI ebook generation work? <span>+</span></button>
+          <div class="faq-answer"><p>We download the audio/subtitles, transcribe them using OpenAI Whisper, then structure the content into chapters using Claude AI.</p></div>
+        </div>
+        <div class="faq-item reveal">
+          <button class="faq-question">Can I sell the ebooks I create? <span>+</span></button>
+          <div class="faq-answer"><p>Yes! You can create products, set prices, and sell directly through Stripe. You keep 100% of your revenue.</p></div>
+        </div>
+        <div class="faq-item reveal">
+          <button class="faq-question">Is there a free plan? <span>+</span></button>
+          <div class="faq-answer"><p>Yes, the BASIC plan is free and includes 3 ebooks and 5 contracts. Upgrade to PRO for unlimited access.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta-section">
+      <div class="interactive-card glass-card reveal" style="display:inline-block; padding: 2.5rem 3rem; max-width: 600px;">
+        <h2 class="gradient-text" style="margin-bottom: 1rem;">Start creating ebooks today</h2>
+        <p style="margin-bottom: 1.5rem;">Turn your first video into a professional ebook. Free to start.</p>
+        <a href="/register" class="btn btn-primary" style="font-size: 1.2rem; padding: 1rem 2rem;">Get started free →</a>
+      </div>
+    </section>
+  </div>
+
+  <footer>
+    <p>&copy; 2024 Contrak. All rights reserved.</p>
+  </footer>
+  <script>
+    (function() {
+      const toggle = document.querySelector('.nav-toggle');
+      const links = document.querySelector('.nav-links');
+      if (toggle && links) {
+        toggle.addEventListener('click', function() {
+          const isOpen = links.classList.toggle('nav-links--open');
+          toggle.classList.toggle('nav-toggle--open', isOpen);
+          toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        });
+      }
+    })();
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) entry.target.classList.add('reveal--visible');
+      });
+    }, { threshold: 0.2 });
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+    document.querySelectorAll('.interactive-card').forEach(card => {
+      let rect;
+      card.addEventListener('mouseenter', () => { rect = card.getBoundingClientRect(); });
+      card.addEventListener('mousemove', (e) => {
+        if (!rect) return;
+        const x = e.clientX - rect.left - rect.width / 2;
+        const y = e.clientY - rect.top - rect.height / 2;
+        const rx = (-y / rect.height) * 6;
+        const ry = (x / rect.width) * 6;
+        card.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg) translateY(-6px) scale(1.02)`;
+      });
+      card.addEventListener('mouseleave', () => { card.style.transform = ''; });
+    });
+    document.querySelectorAll('.faq-item .faq-question').forEach(btn => {
+      btn.addEventListener('click', () => { btn.parentElement.classList.toggle('open'); });
+    });
+  </script>
+</body>
+</html>

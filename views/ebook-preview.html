@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ebook Preview - Contrak</title>
+  <link rel="stylesheet" href="/style.css">
+  <style>
+    body { background:#0a0a1a; color:#e2e8f0; font-family:'Georgia','Times New Roman',serif; }
+    .preview-container { max-width:800px; margin:0 auto; padding:2rem 1.5rem 4rem; }
+
+    /* Cover */
+    .cover { background:linear-gradient(135deg,#052E2B 0%,#064E3B 50%,#052E2B 100%); border-radius:16px; padding:4rem 2.5rem; text-align:center; margin-bottom:3rem; position:relative; overflow:hidden; border:1px solid rgba(52,211,153,0.2); }
+    .cover::before { content:''; position:absolute; top:30px; left:30px; right:30px; bottom:30px; border:1px solid rgba(52,211,153,0.1); border-radius:12px; pointer-events:none; }
+    .cover::after { content:''; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:300px; height:300px; background:radial-gradient(circle,rgba(52,211,153,0.06) 0%,transparent 70%); pointer-events:none; }
+    .cover-accent-line { width:120px; height:3px; background:linear-gradient(90deg,transparent,#34D399,transparent); margin:0 auto 1.5rem; border-radius:2px; }
+    .cover-accent-line2 { width:80px; height:1px; background:linear-gradient(90deg,transparent,rgba(52,211,153,0.4),transparent); margin:0 auto 0.5rem; }
+    .cover h1 { font-size:2.5rem; font-weight:700; color:#fff; margin-bottom:1rem; line-height:1.3; position:relative; z-index:1; }
+    .cover .description { font-size:1.1rem; color:rgba(52,211,153,0.8); max-width:500px; margin:0 auto 2rem; line-height:1.6; position:relative; z-index:1; }
+    .cover .author { font-size:0.95rem; color:rgba(52,211,153,0.6); position:relative; z-index:1; }
+    .cover .footer-line { width:100%; height:1px; background:rgba(52,211,153,0.1); margin-top:2.5rem; margin-bottom:0.75rem; }
+    .cover .brand { font-size:0.8rem; color:rgba(52,211,153,0.4); letter-spacing:3px; text-transform:uppercase; }
+
+    /* TOC */
+    .toc { background:var(--card-bg); border:1px solid var(--border); border-radius:12px; padding:2rem 2.5rem; margin-bottom:3rem; }
+    .toc h2 { color:var(--green-100); font-size:1.5rem; text-align:center; margin-bottom:1rem; font-family:'Inter',sans-serif; }
+    .toc-line { width:80px; height:2px; background:linear-gradient(90deg,transparent,#34D399,transparent); margin:0 auto 1.5rem; border-radius:2px; }
+    .toc-item { display:flex; align-items:center; padding:0.75rem 0; border-bottom:1px solid rgba(148,163,184,0.1); gap:0.75rem; }
+    .toc-item:last-child { border-bottom:none; }
+    .toc-num { color:#34D399; font-weight:700; font-size:1rem; min-width:2rem; font-family:'Inter',sans-serif; }
+    .toc-title { flex:1; color:#e2e8f0; font-size:1rem; }
+    .toc-page { color:#64748B; font-size:0.85rem; font-family:'Inter',sans-serif; }
+
+    /* Chapter */
+    .chapter { margin-bottom:3rem; }
+    .chapter-header { background:linear-gradient(135deg,#052E2B 0%,rgba(5,46,43,0.5) 100%); border-radius:12px 12px 0 0; padding:1.5rem 2rem; border:1px solid var(--border); border-bottom:none; }
+    .chapter-header .label { color:#34D399; font-size:0.8rem; text-transform:uppercase; letter-spacing:1px; font-family:'Inter',sans-serif; font-weight:600; margin-bottom:0.25rem; }
+    .chapter-header h2 { color:#fff; font-size:1.5rem; margin:0; }
+    .chapter-accent { width:50px; height:3px; background:#34D399; margin-top:0.75rem; border-radius:2px; }
+    .chapter-body { background:var(--card-bg); border:1px solid var(--border); border-top:none; border-radius:0 0 12px 12px; padding:2rem; }
+    .chapter-body p { line-height:1.8; margin-bottom:1rem; font-size:1rem; color:#cbd5e1; }
+    .chapter-body p:first-of-type::first-letter { font-size:3em; font-weight:700; float:left; line-height:1; margin-right:0.5rem; color:#34D399; font-family:'Georgia',serif; }
+
+    /* Loading / Error */
+    .loading-state { text-align:center; padding:4rem 2rem; }
+    .loading-state .spinner { width:40px; height:40px; border:3px solid var(--border); border-top-color:var(--green-500); border-radius:50%; animation:spin 0.8s linear infinite; margin:0 auto 1rem; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+
+    /* Controls */
+    .preview-toolbar { position:sticky; top:0; z-index:10; background:rgba(10,10,26,0.95); backdrop-filter:blur(10px); border-bottom:1px solid var(--border); padding:0.75rem 0; margin-bottom:2rem; }
+    .toolbar-inner { max-width:800px; margin:0 auto; display:flex; justify-content:space-between; align-items:center; gap:1rem; }
+    .toolbar-inner h3 { font-size:1rem; color:var(--green-300); font-family:'Inter',sans-serif; }
+    .btn-pdf { padding:0.5rem 1rem; background:linear-gradient(135deg,var(--green-500),#059669); color:#000; border:none; border-radius:8px; font-weight:600; cursor:pointer; font-size:0.85rem; text-decoration:none; }
+
+    .alert { padding:1rem 1.5rem; border-radius:8px; margin-bottom:1rem; font-size:0.95rem; }
+    .alert-error { background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); color:#FCA5A5; }
+  </style>
+</head>
+<body>
+  <div class="preview-toolbar">
+    <div class="toolbar-inner">
+      <h3> <span id="toolbarTitle">Ebook Preview</span></h3>
+      <div style="display:flex;gap:0.5rem;">
+        <a href="/ebooks" class="btn btn-outline" style="padding:0.5rem 1rem;font-size:0.85rem;text-decoration:none;">&larr; Back</a>
+        <a id="downloadBtn" href="#" class="btn-pdf">Download PDF</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="preview-container" id="app">
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p style="color:var(--text-muted);">Chargement de l'aperçu...</p>
+    </div>
+  </div>
+
+  <script>
+    var params = new URLSearchParams(window.location.search);
+    var ebookId = params.get('id') || params.get('ebookId');
+
+    if (!ebookId) {
+      document.getElementById('app').innerHTML = '<div class="alert alert-error">Aucun ebook spécifié.</div>';
+    } else {
+      loadPreview(ebookId);
+    }
+
+    async function loadPreview(id) {
+      try {
+        var resp = await fetch('/api/ebooks/data/' + id, { credentials: 'include' });
+        if (!resp.ok) {
+          var err = await resp.json().catch(function(){return{error:'Erreur'}});
+          document.getElementById('app').innerHTML = '<div class="alert alert-error">' + (err.error || 'Erreur de chargement') + '</div>';
+          return;
+        }
+        var json = await resp.json();
+        var ebook = json.ebook;
+        renderPreview(ebook);
+      } catch(e) {
+        document.getElementById('app').innerHTML = '<div class="alert alert-error">' + e.message + '</div>';
+      }
+    }
+
+    function renderPreview(ebook) {
+      document.getElementById('toolbarTitle').textContent = ebook.title || 'Ebook Preview';
+      document.getElementById('downloadBtn').href = '/api/ebooks/export/' + ebook.ebookId;
+
+      var chapters = ebook.chapters || [];
+      var html = '';
+
+      // Cover
+      html += '<div class="cover">' +
+        '<div class="cover-accent-line"></div>' +
+        '<h1>' + escHtml(ebook.title) + '</h1>' +
+        (ebook.description ? '<p class="description">' + escHtml(ebook.description) + '</p>' : '') +
+        '<div class="cover-accent-line2"></div>' +
+        (ebook.author ? '<p class="author">Par ' + escHtml(ebook.author) + '</p>' : '') +
+        '<div class="footer-line"></div>' +
+        '<div class="brand">CONTRAK.IO</div>' +
+      '</div>';
+
+      // TOC
+      if (chapters.length) {
+        html += '<div class="toc"><h2>Table des matières</h2><div class="toc-line"></div>';
+        chapters.forEach(function(ch, i) {
+          html += '<div class="toc-item">' +
+            '<span class="toc-num">' + pad(i+1, 2) + '.</span>' +
+            '<span class="toc-title">' + escHtml(ch.title) + '</span>' +
+            '<span class="toc-page">p. ' + (3 + i) + '</span>' +
+          '</div>';
+        });
+        html += '</div>';
+      }
+
+      // Chapters
+      chapters.forEach(function(ch, i) {
+        var content = ch.content || 'Contenu à venir...';
+        var paragraphs = content.split(/\n+/).filter(function(p){return p.trim();});
+        html += '<div class="chapter">' +
+          '<div class="chapter-header">' +
+            '<div class="label">Chapitre ' + (i + 1) + '</div>' +
+            '<h2>' + escHtml(ch.title) + '</h2>' +
+            '<div class="chapter-accent"></div>' +
+          '</div>' +
+          '<div class="chapter-body">' +
+            paragraphs.map(function(p){return '<p>' + escHtml(p.trim()) + '</p>';}).join('') +
+          '</div>' +
+        '</div>';
+      });
+
+      document.getElementById('app').innerHTML = html;
+    }
+
+    function escHtml(s) {
+      if (!s) return '';
+      var d = document.createElement('div');
+      d.appendChild(document.createTextNode(s));
+      return d.innerHTML;
+    }
+
+    function pad(n, len) {
+      var s = n.toString();
+      while (s.length < len) s = '0' + s;
+      return s;
+    }
+  </script>
+</body>
+</html>

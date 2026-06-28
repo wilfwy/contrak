@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Landing Pages - Contrak</title>
+  <link rel="stylesheet" href="/style.css">
+  <style>
+    .pages-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:2rem; flex-wrap:wrap; gap:1rem; }
+    .page-card { background:var(--card-bg); border:1px solid var(--border); backdrop-filter:blur(10px); border-radius:12px; padding:1.5rem; margin-bottom:1rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; }
+    .page-card h3 { color:var(--green-100); margin-bottom:0.25rem; }
+    .page-card p { color:var(--text-muted); font-size:0.9rem; margin:0; }
+    .page-card .status-badge { display:inline-block; padding:2px 10px; border-radius:999px; font-size:0.75rem; font-weight:600; }
+    .status-badge.published { background:#34D39922; color:#34D399; border:1px solid #34D39944; }
+    .status-badge.draft { background:#F59E0B22; color:#F59E0B; border:1px solid #F59E0B44; }
+    .page-actions { display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap; }
+    .page-actions .btn { font-size:0.8rem; padding:6px 14px; }
+    .empty-pages { text-align:center; padding:4rem 2rem; color:var(--text-muted); }
+    .empty-pages .empty-icon { font-size:3rem; margin-bottom:1rem; opacity:0.5; }
+
+    .editor-overlay { display:none; position:fixed; inset:0; background:var(--dark); z-index:200; overflow-y:auto; }
+    .editor-overlay.open { display:block; }
+    .editor-layout { display:grid; grid-template-columns:480px 1fr; min-height:100vh; }
+    @media (max-width:1024px) { .editor-layout { grid-template-columns:1fr; } }
+
+    .editor-sidebar { background:var(--card-bg); border-right:1px solid var(--border); padding:1.5rem; overflow-y:auto; max-height:100vh; }
+    .editor-sidebar h2 { color:var(--green-100); font-size:1.1rem; margin-bottom:1rem; display:flex; align-items:center; gap:0.5rem; }
+    .editor-sidebar .close-editor { margin-left:auto; background:none; border:1px solid var(--border); color:var(--text-muted); border-radius:8px; padding:4px 12px; cursor:pointer; font-size:0.85rem; }
+    .editor-sidebar .close-editor:hover { color:var(--green-100); border-color:var(--green-500); }
+
+    .form-section { background:rgba(52,211,153,0.03); border:1px solid var(--border); border-radius:10px; padding:1.25rem; margin-bottom:1rem; }
+    .form-section h3 { color:var(--green-200); font-size:0.95rem; margin-bottom:1rem; padding-bottom:0.5rem; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:0.5rem; }
+    .form-row { display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; margin-bottom:0.75rem; }
+    .form-row.full { grid-template-columns:1fr; }
+    .form-group label { display:block; color:var(--green-300); font-weight:600; font-size:0.8rem; margin-bottom:0.3rem; text-transform:uppercase; letter-spacing:0.5px; }
+    .form-group input[type="text"],
+    .form-group input[type="url"],
+    .form-group textarea,
+    .form-group select { width:100%; background:var(--dark); border:1px solid var(--border); color:var(--green-100); padding:0.6rem 0.75rem; border-radius:8px; font-size:0.9rem; transition:all 0.2s; box-sizing:border-box; }
+    .form-group input:focus,
+    .form-group textarea:focus,
+    .form-group select:focus { outline:none; border-color:var(--green-500); box-shadow:0 0 15px var(--accent-glow); }
+    .form-group textarea { resize:vertical; min-height:60px; font-family:inherit; }
+    .form-group input[type="color"] { width:100%; height:40px; border:1px solid var(--border); border-radius:8px; background:var(--dark); cursor:pointer; padding:2px; }
+    .form-group .help-text { display:block; color:var(--text-muted); font-size:0.75rem; margin-top:0.25rem; }
+
+    .color-row { display:flex; gap:0.75rem; }
+    .color-row .form-group { flex:1; }
+
+    .section-editor { background:rgba(52,211,153,0.02); border:1px solid var(--border); border-radius:10px; margin-bottom:0.75rem; overflow:hidden; }
+    .section-header { display:flex; align-items:center; padding:0.75rem 1rem; background:rgba(52,211,153,0.04); cursor:pointer; gap:0.75rem; user-select:none; }
+    .section-header:hover { background:rgba(52,211,153,0.08); }
+    .section-header .drag-handle { color:var(--text-muted); cursor:grab; font-size:1rem; }
+    .section-header .section-type-badge { display:inline-block; padding:2px 10px; border-radius:999px; font-size:0.7rem; font-weight:600; text-transform:uppercase; background:var(--dark); border:1px solid var(--border); color:var(--green-300); }
+    .section-header .section-title-preview { flex:1; color:var(--green-100); font-size:0.9rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .section-header .section-arrows { display:flex; gap:2px; }
+    .section-header .section-arrows button { background:none; border:1px solid var(--border); color:var(--text-muted); border-radius:4px; padding:2px 8px; cursor:pointer; font-size:0.75rem; }
+    .section-header .section-arrows button:hover { color:var(--green-300); border-color:var(--green-500); }
+    .section-header .section-delete { background:none; border:1px solid #EF444444; color:#EF4444; border-radius:4px; padding:2px 8px; cursor:pointer; font-size:0.75rem; }
+    .section-header .section-delete:hover { background:#EF444422; }
+    .section-body { padding:1rem; border-top:1px solid var(--border); display:none; }
+    .section-body.open { display:block; }
+
+    .add-section-bar { display:flex; gap:0.5rem; margin-bottom:1rem; align-items:center; }
+    .add-section-bar select { background:var(--dark); border:1px solid var(--border); color:var(--green-100); padding:0.6rem 0.75rem; border-radius:8px; flex:1; font-size:0.9rem; }
+    .add-section-bar select:focus { outline:none; border-color:var(--green-500); }
+    .add-section-bar .btn { white-space:nowrap; }
+
+    .preview-panel { background:#0a0a0a; padding:1.5rem; overflow-y:auto; max-height:100vh; display:flex; flex-direction:column; align-items:center; }
+    .preview-panel h3 { color:var(--green-200); font-size:0.95rem; margin-bottom:1rem; text-align:center; width:100%; }
+    .preview-frame { width:100%; max-width:420px; background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,0.5); min-height:600px; }
+    .preview-frame .lp-content { min-height:600px; }
+    .preview-frame .lp-content .loading-screen { color:#111; }
+
+    .publish-row { display:flex; gap:0.75rem; align-items:center; margin-top:1rem; padding-top:1rem; border-top:1px solid var(--border); }
+    .publish-row .btn { flex:1; text-align:center; }
+    .status-toggle { display:flex; align-items:center; gap:0.5rem; color:var(--green-300); font-size:0.9rem; }
+    .status-toggle input[type="checkbox"] { accent-color:var(--green-500); width:18px; height:18px; cursor:pointer; }
+    .public-url { color:var(--text-muted); font-size:0.8rem; word-break:break-all; margin-top:0.5rem; }
+    .public-url a { color:var(--green-400); }
+
+    .no-selection { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:400px; color:var(--text-muted); text-align:center; gap:1rem; }
+
+    .toast { position:fixed; bottom:2rem; right:2rem; padding:1rem 1.5rem; border-radius:10px; font-weight:600; z-index:9999; animation:slideUp 0.3s ease; backdrop-filter:blur(10px); }
+    .toast.success { background:#34D39922; border:1px solid #34D39944; color:#34D399; }
+    .toast.error { background:#EF444422; border:1px solid #EF444444; color:#EF4444; }
+    .toast.info { background:#3B82F622; border:1px solid #3B82F644; color:#3B82F6; }
+    @keyframes slideUp { from { transform:translateY(20px); opacity:0; } to { transform:translateY(0); opacity:1; } }
+
+    .ai-btn { background:linear-gradient(135deg,#2563EB,#7C3AED); color:#fff; border:none; padding:0.6rem 1.25rem; border-radius:8px; font-weight:600; font-size:0.85rem; cursor:pointer; transition:all 0.3s; display:inline-flex; align-items:center; gap:0.5rem; }
+    .ai-btn:hover { transform:translateY(-1px); box-shadow:0 8px 25px rgba(37,99,235,0.35); }
+    .ai-btn:disabled { opacity:0.5; cursor:not-allowed; transform:none; }
+
+    .ai-modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:300; align-items:center; justify-content:center; backdrop-filter:blur(4px); }
+    .ai-modal-overlay.open { display:flex; }
+    .ai-modal { background:var(--card-bg); border:1px solid var(--border); border-radius:16px; padding:2rem; width:90%; max-width:520px; }
+    .ai-modal h2 { color:var(--green-100); font-size:1.2rem; margin-bottom:0.5rem; display:flex; align-items:center; gap:0.5rem; }
+    .ai-modal .sub { color:var(--text-muted); font-size:0.85rem; margin-bottom:1.25rem; }
+    .ai-modal textarea { width:100%; box-sizing:border-box; background:var(--dark); border:1px solid var(--border); color:var(--green-100); padding:0.75rem; border-radius:10px; font-size:0.95rem; min-height:100px; resize:vertical; font-family:inherit; }
+    .ai-modal textarea:focus { outline:none; border-color:var(--green-500); box-shadow:0 0 15px var(--accent-glow); }
+    .ai-modal .examples { display:flex; flex-wrap:wrap; gap:0.4rem; margin-bottom:1rem; }
+    .ai-modal .examples button { background:rgba(52,211,153,0.08); border:1px solid var(--border); color:var(--green-300); border-radius:999px; padding:0.3rem 0.75rem; font-size:0.75rem; cursor:pointer; transition:all 0.2s; }
+    .ai-modal .examples button:hover { background:rgba(52,211,153,0.15); border-color:var(--green-500); }
+    .ai-modal-actions { display:flex; gap:0.75rem; margin-top:1.25rem; justify-content:flex-end; }
+    .ai-spinner { width:18px; height:18px; border:2px solid rgba(255,255,255,0.2); border-top-color:#fff; border-radius:50%; animation:spin 0.6s linear infinite; display:inline-block; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+
+    .preview-frame .lp-section { padding:2rem 1.5rem; }
+    .preview-frame .lp-section.light { background:#ffffff; color:#111827; }
+    .preview-frame .lp-section.dark { background:#052E2B; color:#E6FFFB; }
+    .preview-frame .lp-section.accent { background:#2563EB; color:#ffffff; }
+    .preview-frame .lp-container { max-width:800px; margin:0 auto; }
+    .preview-frame .lp-hero { text-align:center; padding:3rem 1.5rem; font-size:0.9rem; }
+    .preview-frame .lp-hero h1 { font-size:1.5rem; margin-bottom:0.5rem; }
+    .preview-frame .lp-hero p { font-size:0.9rem; opacity:0.8; margin-bottom:1rem; }
+    .preview-frame .lp-hero.light .btn-cta-landing { background:#2563EB; color:#fff; }
+    .preview-frame .lp-hero.dark .btn-cta-landing { background:#fff; color:#052E2B; }
+    .preview-frame .lp-hero.accent .btn-cta-landing { background:#fff; color:#2563EB; }
+    .preview-frame .btn-cta-landing { display:inline-block; padding:8px 24px; border-radius:9999px; font-weight:700; text-decoration:none; font-size:0.85rem; }
+    .preview-frame .lp-image { max-width:100%; border-radius:8px; margin-top:1rem; max-height:150px; }
+    .preview-frame .lp-features { display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:1rem; margin-top:1rem; }
+    .preview-frame .lp-feature-card { padding:1rem; border-radius:8px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); font-size:0.85rem; }
+    .preview-frame .lp-feature-card.light { background:#ffffff; border-color:#E5E7EB; }
+    .preview-frame .lp-feature-card h3 { font-size:0.9rem; }
+    .preview-frame .lp-testimonials { display:grid; grid-template-columns:1fr; gap:0.75rem; margin-top:1rem; }
+    .preview-frame .lp-testimonial { padding:1rem; border-radius:8px; background:rgba(255,255,255,0.05); font-style:italic; font-size:0.8rem; }
+    .preview-frame .lp-testimonial.light { background:#ffffff; border:1px solid #E5E7EB; }
+    .preview-frame .lp-faq { max-width:600px; margin:0 auto; }
+    .preview-frame .lp-faq-item { border-bottom:1px solid rgba(255,255,255,0.1); padding:0.75rem 0; font-size:0.85rem; }
+    .preview-frame .lp-faq-item.light { border-color:#E5E7EB; }
+    .preview-frame .lp-section h2 { font-size:1.3rem; margin-bottom:0.5rem; text-align:center; }
+    .preview-frame .lp-section .subtitle { text-align:center; font-size:0.95rem; opacity:0.8; margin-bottom:1rem; }
+    .preview-frame .lp-footer { text-align:center; padding:1rem; color:#6B7280; font-size:0.75rem; border-top:1px solid #E5E7EB; }
+  </style>
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="/" class="logo">CONTRAK.IO</a>
+      <button class="nav-toggle" aria-label="Open menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="nav-links">
+        <li><a href="/dashboard">Dashboard</a></li>
+        <li><a href="/ebooks">Ebooks</a></li>
+        <li><a href="/products">Products</a></li>
+        <li><a href="/pages" class="active">Pages</a></li>
+        <li><a href="/media">Media</a></li>
+        <li><a href="/orders-admin">Orders</a></li>
+        <li><a href="/blog">Blog</a></li>
+        <li><a href="/pricing">Pricing</a></li>
+        <li><a href="/profile">Profile</a></li>
+        <li><span id="userPlan" class="plan-badge basic">BASIC</span></li>
+        <li><button id="logoutBtn" class="btn btn-outline">Log out</button></li>
+      </ul>
+    </nav>
+  </header>
+  <div class="container">
+    <div id="alertContainer"></div>
+    <div class="pages-header">
+      <h1>Landing Pages</h1>
+      <button class="btn btn-primary" id="newPageBtn">+ New Page</button>
+    </div>
+    <div id="pagesList">
+      <div class="loading"><div class="spinner"></div><p>Loading...</p></div>
+    </div>
+  </div>
+
+  <div class="editor-overlay" id="editorOverlay">
+    <div class="editor-layout">
+      <div class="editor-sidebar">
+        <h2>
+          <span id="editorTitle">New Page</span>
+          <button class="close-editor" id="closeEditorBtn"> Close</button>
+        </h2>
+
+        <div id="editorBody">
+          <div class="form-section">
+            <h3> Page Settings</h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Title *</label>
+                <input type="text" id="fTitle" placeholder="My Landing Page">
+              </div>
+              <div class="form-group">
+                <label>Slug</label>
+                <input type="text" id="fSlug" placeholder="my-landing-page">
+                <span class="help-text">/l/[slug]</span>
+              </div>
+            </div>
+            <div class="form-row full">
+              <div class="form-group">
+                <label>Description</label>
+                <textarea id="fDescription" rows="2" placeholder="Short description of this page"></textarea>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h3> Theme Colors</h3>
+            <div class="color-row">
+              <div class="form-group">
+                <label>Background</label>
+                <input type="color" id="fBgColor" value="#ffffff">
+              </div>
+              <div class="form-group">
+                <label>Text</label>
+                <input type="color" id="fTextColor" value="#111827">
+              </div>
+              <div class="form-group">
+                <label>Accent</label>
+                <input type="color" id="fAccentColor" value="#2563EB">
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h3> Sections <span style="color:var(--text-muted);font-weight:400;font-size:0.8rem;">— add, edit, reorder</span></h3>
+            <div class="add-section-bar">
+              <select id="addSectionType">
+                <option value="hero">Hero</option>
+                <option value="features">Features</option>
+                <option value="content">Content</option>
+                <option value="cta">CTA</option>
+                <option value="testimonials">Testimonials</option>
+                <option value="faq">FAQ</option>
+              </select>
+              <button class="btn btn-primary" id="addSectionBtn">+ Add</button>
+              <button class="ai-btn" id="aiGenerateBtn"> AI</button>
+            </div>
+            <div id="sectionsContainer"></div>
+            <div id="emptySections" class="empty-pages" style="padding:1.5rem;">
+              <p style="font-size:0.9rem;">No sections yet. Click "+ Add" to start building your page.</p>
+            </div>
+          </div>
+
+          <div class="publish-row">
+            <label class="status-toggle">
+              <input type="checkbox" id="fPublished"> Published
+            </label>
+            <button class="btn btn-primary" id="savePageBtn"> Save Page</button>
+          </div>
+          <div class="public-url" id="publicUrlDisplay" style="display:none;">
+            Public URL: <a id="publicUrlLink" href="#" target="_blank"></a>
+          </div>
+        </div>
+      </div>
+
+      <div class="preview-panel">
+        <h3> Live Preview</h3>
+        <div class="preview-frame" id="previewFrame">
+          <div class="lp-content" id="previewContent">
+            <div class="no-selection"><p>Create or edit a page to see the preview</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ai-modal-overlay" id="aiModal">
+    <div class="ai-modal">
+      <h2> Generate Page with AI</h2>
+      <p class="sub">Describe the page you want in plain language. The AI will create sections, content, and theme colors automatically.</p>
+      <div class="examples">
+        <button onclick="fillExample('SaaS landing page for a project management tool with hero, features, testimonials and pricing')">SaaS landing page</button>
+        <button onclick="fillExample('Portfolio page for a freelance photographer with gallery section')">Photographer portfolio</button>
+        <button onclick="fillExample('Launch page for a new mobile fitness app with hero, features, FAQ and CTA')">Fitness app launch</button>
+        <button onclick="fillExample('Landing page for an online cooking course with testimonials')">Cooking course</button>
+      </div>
+      <textarea id="aiPrompt" placeholder="e.g. Create a landing page for my digital marketing agency. I want a hero section with a strong headline, a features section showing our services, client testimonials, FAQ, and a call to action at the end..."></textarea>
+      <div class="ai-modal-actions">
+        <button class="btn btn-outline" id="aiCancelBtn">Cancel</button>
+        <button class="ai-btn" id="aiGenerateSubmitBtn"><span id="aiBtnText"> Generate</span></button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      const toggle = document.querySelector('.nav-toggle');
+      const links = document.querySelector('.nav-links');
+      if (toggle && links) {
+        toggle.addEventListener('click', function() {
+          const isOpen = links.classList.toggle('nav-links--open');
+          toggle.classList.toggle('nav-toggle--open', isOpen);
+          toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        });
+      }
+    })();
+
+    let currentUser = null;
+    let editingPageId = null;
+    let sections = [];
+    let previewTimer = null;
+
+    async function checkAuth() {
+      try {
+        const r = await fetch('/api/auth/me', { credentials: 'include' });
+        if (!r.ok) { window.location.href = '/login'; return; }
+        const d = await r.json();
+        currentUser = d.user;
+        const badge = document.getElementById('userPlan');
+        if (currentUser.plan === 'pro') { badge.textContent = 'PRO'; badge.className = 'plan-badge pro'; }
+        else { badge.textContent = 'BASIC'; badge.className = 'plan-badge basic'; }
+        loadPages();
+      } catch(e) { window.location.href = '/login'; }
+    }
+
+    async function api(path, opts) {
+      opts = opts || {};
+      var r = await fetch(path, { credentials: 'include', headers: { 'Content-Type': 'application/json' }, ...opts });
+      var d = await r.json();
+      if (!r.ok) throw new Error(d.error || 'Request failed');
+      return d;
+    }
+
+    function showToast(type, msg) {
+      var t = document.createElement('div');
+      t.className = 'toast ' + type;
+      t.textContent = msg;
+      document.body.appendChild(t);
+      setTimeout(function() { t.remove(); }, 3500);
+    }
+
+    async function loadPages() {
+      try {
+        var d = await api('/api/pages');
+        var list = document.getElementById('pagesList');
+        var pages = d.pages || [];
+        if (pages.length === 0) {
+          list.innerHTML = '<div class="empty-pages"><div class="empty-icon"></div><p>No landing pages yet.</p><button class="btn btn-primary" onclick="openEditor()" style="margin-top:1rem;">+ Create your first page</button></div>';
+          return;
+        }
+        list.innerHTML = pages.map(function(p) {
+          var slug = p.slug || p.id;
+          var previewUrl = window.location.origin + '/l/' + slug;
+          var statusClass = p.status === 'published' ? 'published' : 'draft';
+          var statusLabel = p.status === 'published' ? 'Published' : 'Draft';
+          var sectionsCount = (p.sections || []).length;
+          return '<div class="page-card">' +
+            '<div><h3>' + esc(p.title || 'Untitled') + ' <span class="status-badge ' + statusClass + '">' + statusLabel + '</span></h3>' +
+            '<p>/l/' + esc(slug) + ' · ' + sectionsCount + ' sections · ' + formatDate(p.createdAt) + '</p></div>' +
+            '<div class="page-actions">' +
+            '<a href="' + previewUrl + '" class="btn btn-small btn-outline" target="_blank">Preview</a>' +
+            '<button class="btn btn-small btn-outline" onclick="editPage(\'' + p.id + '\')">Edit</button>' +
+            '<button class="btn btn-small btn-outline" onclick="duplicatePage(\'' + p.id + '\')">Duplicate</button>' +
+            '<button class="btn btn-small btn-outline" style="border-color:#EF444444;color:#EF4444;" onclick="deletePage(\'' + p.id + '\')">Delete</button>' +
+            '</div></div>';
+        }).join('');
+      } catch(e) {
+        document.getElementById('pagesList').innerHTML = '<div class="alert alert-error">' + e.message + '</div>';
+      }
+    }
+
+    function esc(s) {
+      if (!s) return '';
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+    }
+
+    function formatDate(d) {
+      if (!d) return '—';
+      var date = d.toDate ? d.toDate() : new Date(d);
+      return date.toLocaleDateString('en-GB');
+    }
+
+    function getTheme() {
+      return {
+        background: document.getElementById('fBgColor').value,
+        textColor: document.getElementById('fTextColor').value,
+        accentColor: document.getElementById('fAccentColor').value
+      };
+    }
+
+    function getFormData() {
+      return {
+        title: document.getElementById('fTitle').value,
+        slug: document.getElementById('fSlug').value || undefined,
+        description: document.getElementById('fDescription').value || null,
+        sections: sections,
+        theme: getTheme(),
+        status: document.getElementById('fPublished').checked ? 'published' : 'draft'
+      };
+    }
+
+    function openEditor() {
+      editingPageId = null;
+      document.getElementById('editorTitle').textContent = 'New Page';
+      document.getElementById('fTitle').value = '';
+      document.getElementById('fSlug').value = '';
+      document.getElementById('fDescription').value = '';
+      document.getElementById('fBgColor').value = '#ffffff';
+      document.getElementById('fTextColor').value = '#111827';
+      document.getElementById('fAccentColor').value = '#2563EB';
+      document.getElementById('fPublished').checked = false;
+      document.getElementById('publicUrlDisplay').style.display = 'none';
+      sections = [];
+      renderSections();
+      updatePreview();
+      document.getElementById('editorOverlay').classList.add('open');
+    }
+
+    async function editPage(id) {
+      try {
+        var d = await api('/api/pages/' + id);
+        var p = d.page;
+        editingPageId = id;
+        document.getElementById('editorTitle').textContent = 'Edit: ' + esc(p.title || 'Untitled');
+        document.getElementById('fTitle').value = p.title || '';
+        document.getElementById('fSlug').value = p.slug || '';
+        document.getElementById('fDescription').value = p.description || '';
+        document.getElementById('fBgColor').value = (p.theme && p.theme.background) || '#ffffff';
+        document.getElementById('fTextColor').value = (p.theme && p.theme.textColor) || '#111827';
+        document.getElementById('fAccentColor').value = (p.theme && p.theme.accentColor) || '#2563EB';
+        document.getElementById('fPublished').checked = p.status === 'published';
+        sections = (p.sections || []).map(function(s) { return JSON.parse(JSON.stringify(s)); });
+        renderSections();
+        updatePreview();
+        showPublicUrl(p);
+        document.getElementById('editorOverlay').classList.add('open');
+      } catch(e) { showToast('error', e.message); }
+    }
+
+    function showPublicUrl(p) {
+      var slug = p.slug || p.id;
+      var url = window.location.origin + '/l/' + slug;
+      document.getElementById('publicUrlDisplay').style.display = 'block';
+      document.getElementById('publicUrlLink').textContent = url;
+      document.getElementById('publicUrlLink').href = url;
+    }
+
+    document.getElementById('newPageBtn').addEventListener('click', openEditor);
+    document.getElementById('closeEditorBtn').addEventListener('click', function() {
+      if (sections.length > 0 && !confirm('Close editor? Unsaved changes will be lost.')) return;
+      document.getElementById('editorOverlay').classList.remove('open');
+    });
+
+    function getDefaultSection(type) {
+      var s = { type: type, background: 'light' };
+      switch (type) {
+        case 'hero': s.title = 'Your Hero Title'; s.subtitle = 'Compelling subtitle here'; s.ctaText = 'Get Started'; s.ctaLink = '#'; break;
+        case 'features': s.title = 'Features'; s.subtitle = 'What we offer'; s.content = 'Feature 1\nFeature 2\nFeature 3'; break;
+        case 'testimonials': s.title = 'Testimonials'; s.content = 'Amazing service!\nHighly recommended!'; break;
+        case 'faq': s.title = 'FAQ'; s.content = 'Question 1?\nQuestion 2?'; break;
+        case 'cta': s.title = 'Call to Action'; s.subtitle = 'Start today'; s.ctaText = 'Get Started'; s.ctaLink = '#'; break;
+        case 'content': s.title = 'Content Section'; s.subtitle = 'Learn more'; s.content = 'Your content here.'; break;
+      }
+      return s;
+    }
+
+    document.getElementById('addSectionBtn').addEventListener('click', function() {
+      var type = document.getElementById('addSectionType').value;
+      sections.push(getDefaultSection(type));
+      renderSections();
+      updatePreview();
+      showToast('success', 'Section added!');
+    });
+
+    function renderSections() {
+      var container = document.getElementById('sectionsContainer');
+      var empty = document.getElementById('emptySections');
+      if (sections.length === 0) {
+        container.innerHTML = '';
+        empty.style.display = 'block';
+        return;
+      }
+      empty.style.display = 'none';
+      container.innerHTML = sections.map(function(s, i) {
+        var typeIcons = { hero:'', features:'', content:'', cta:'', testimonials:'', faq:'' };
+        var icon = typeIcons[s.type] || '';
+        var titlePreview = s.title || s.subtitle || s.content || '(empty)';
+        return '<div class="section-editor" data-index="' + i + '">' +
+          '<div class="section-header" onclick="toggleSection(' + i + ')">' +
+          '<span class="drag-handle">⠿</span>' +
+          '<span class="section-type-badge">' + icon + ' ' + s.type + '</span>' +
+          '<span class="section-title-preview">' + esc(titlePreview.substring(0, 40)) + '</span>' +
+          '<span class="section-arrows">' +
+            (i > 0 ? '<button onclick="event.stopPropagation();moveSection(' + i + ',-1)" title="Move up">↑</button>' : '') +
+            (i < sections.length - 1 ? '<button onclick="event.stopPropagation();moveSection(' + i + ',1)" title="Move down">↓</button>' : '') +
+          '</span>' +
+          '<button class="section-delete" onclick="event.stopPropagation();removeSection(' + i + ')" title="Delete"></button>' +
+          '</div>' +
+          '<div class="section-body" id="sectionBody' + i + '">' +
+          renderSectionForm(s, i) +
+          '</div>' +
+          '</div>';
+      }).join('');
+
+      if (sections.length > 0) {
+        toggleSection(sections.length - 1);
+      }
+    }
+
+    function toggleSection(i) {
+      var body = document.getElementById('sectionBody' + i);
+      if (body) {
+        var isOpen = body.classList.contains('open');
+        var allBodies = document.querySelectorAll('.section-body');
+        allBodies.forEach(function(b) { b.classList.remove('open'); });
+        if (!isOpen) body.classList.add('open');
+      }
+    }
+
+    function moveSection(i, dir) {
+      var newIndex = i + dir;
+      if (newIndex < 0 || newIndex >= sections.length) return;
+      var temp = sections[i];
+      sections[i] = sections[newIndex];
+      sections[newIndex] = temp;
+      renderSections();
+      schedulePreview();
+    }
+
+    function removeSection(i) {
+      if (!confirm('Remove this section?')) return;
+      sections.splice(i, 1);
+      renderSections();
+      schedulePreview();
+    }
+
+    var sectionFieldTimer = null;
+
+    function onSectionChange(i, field, value) {
+      if (sectionFieldTimer) clearTimeout(sectionFieldTimer);
+      sections[i][field] = value;
+      sectionFieldTimer = setTimeout(function() { schedulePreview(); }, 300);
+    }
+
+    function renderSectionForm(s, i) {
+      var common = '';
+      var typeSpecific = '';
+
+      common += '<div class="form-row"><div class="form-group"><label>Title</label><input type="text" value="' + esc(s.title || '') + '" onchange="onSectionChange(' + i + ',\'title\',this.value)" placeholder="Section title"></div>';
+      common += '<div class="form-group"><label>Subtitle</label><input type="text" value="' + esc(s.subtitle || '') + '" onchange="onSectionChange(' + i + ',\'subtitle\',this.value)" placeholder="Section subtitle"></div></div>';
+
+      if (s.type === 'features' || s.type === 'testimonials' || s.type === 'faq') {
+        var placeholder = s.type === 'features' ? 'One feature per line' : s.type === 'testimonials' ? 'One testimonial per line' : 'One question per line';
+        common += '<div class="form-row full"><div class="form-group"><label>Items (one per line)</label><textarea rows="4" onchange="onSectionChange(' + i + ',\'content\',this.value)" placeholder="' + placeholder + '">' + esc(s.content || '') + '</textarea></div></div>';
+      } else {
+        common += '<div class="form-row full"><div class="form-group"><label>Content</label><textarea rows="3" onchange="onSectionChange(' + i + ',\'content\',this.value)" placeholder="Content text">' + esc(s.content || '') + '</textarea></div></div>';
+      }
+
+      if (s.type === 'hero' || s.type === 'cta' || s.type === 'content') {
+        typeSpecific += '<div class="form-row">' +
+          '<div class="form-group"><label>CTA Text</label><input type="text" value="' + esc(s.ctaText || '') + '" onchange="onSectionChange(' + i + ',\'ctaText\',this.value)" placeholder="Button text"></div>' +
+          '<div class="form-group"><label>CTA Link</label><input type="text" value="' + esc(s.ctaLink || '') + '" onchange="onSectionChange(' + i + ',\'ctaLink\',this.value)" placeholder="#"></div>' +
+          '</div>' +
+          '<div class="form-row full"><div class="form-group"><label>Image URL</label><input type="text" value="' + esc(s.image || '') + '" onchange="onSectionChange(' + i + ',\'image\',this.value)" placeholder="https://example.com/image.jpg"></div></div>';
+      }
+
+      common += '<div class="form-row"><div class="form-group"><label>Background</label><select onchange="onSectionChange(' + i + ',\'background\',this.value)">' +
+        '<option value="light"' + (s.background === 'light' ? ' selected' : '') + '>Light</option>' +
+        '<option value="dark"' + (s.background === 'dark' ? ' selected' : '') + '>Dark</option>' +
+        '<option value="accent"' + (s.background === 'accent' ? ' selected' : '') + '>Accent</option>' +
+        '</select></div></div>';
+
+      return common + typeSpecific;
+    }
+
+    document.getElementById('aiGenerateBtn').addEventListener('click', openAIGenerator);
+    document.getElementById('aiCancelBtn').addEventListener('click', function() {
+      document.getElementById('aiModal').classList.remove('open');
+    });
+    document.getElementById('aiModal').addEventListener('click', function(e) {
+      if (e.target === this) document.getElementById('aiModal').classList.remove('open');
+    });
+
+    function fillExample(text) {
+      document.getElementById('aiPrompt').value = text;
+    }
+
+    document.getElementById('aiGenerateSubmitBtn').addEventListener('click', generateWithAI);
+
+    async function generateWithAI() {
+      var prompt = document.getElementById('aiPrompt').value.trim();
+      if (!prompt) { showToast('error', 'Describe the page you want to generate'); return; }
+
+      var btn = document.getElementById('aiGenerateSubmitBtn');
+      var btnText = document.getElementById('aiBtnText');
+      btn.disabled = true;
+      btnText.innerHTML = '<span class="ai-spinner"></span> Generating...';
+
+      try {
+        var d = await api('/api/pages/ai-generate', {
+          method: 'POST',
+          body: JSON.stringify({ prompt: prompt })
+        });
+
+        var pageData = d.page;
+
+        document.getElementById('fTitle').value = pageData.title || '';
+        document.getElementById('fSlug').value = pageData.slug || '';
+        document.getElementById('fDescription').value = pageData.description || '';
+
+        if (pageData.theme) {
+          if (pageData.theme.background) document.getElementById('fBgColor').value = pageData.theme.background;
+          if (pageData.theme.textColor) document.getElementById('fTextColor').value = pageData.theme.textColor;
+          if (pageData.theme.accentColor) document.getElementById('fAccentColor').value = pageData.theme.accentColor;
+        }
+
+        sections = (pageData.sections || []).map(function(s) { return JSON.parse(JSON.stringify(s)); });
+        renderSections();
+        updatePreview();
+        document.getElementById('aiModal').classList.remove('open');
+        showToast('success', 'Page generated by AI! Edit sections below.');
+      } catch(e) {
+        showToast('error', e.message);
+      } finally {
+        btn.disabled = false;
+        btnText.textContent = ' Generate';
+      }
+    }
+
+    function openAIGenerator() {
+      document.getElementById('aiPrompt').value = '';
+      document.getElementById('aiModal').classList.add('open');
+      setTimeout(function() { document.getElementById('aiPrompt').focus(); }, 100);
+    }
+
+    function schedulePreview() {
+      if (previewTimer) clearTimeout(previewTimer);
+      previewTimer = setTimeout(function() { updatePreview(); }, 400);
+    }
+
+    function updatePreview() {
+      var theme = getTheme();
+      var html = '';
+      sections.forEach(function(s) {
+        var bgClass = s.background || 'light';
+        var sectionStyle = '';
+        if (bgClass === 'light') sectionStyle = 'style="background:' + theme.background + ';color:' + theme.textColor + ';"';
+        else if (bgClass === 'dark') sectionStyle = 'style="background:#052E2B;color:#E6FFFB;"';
+        else sectionStyle = 'style="background:' + theme.accentColor + ';color:#ffffff;"';
+
+        if (s.type === 'hero' || s.type === 'cta') {
+          html += '<div class="lp-hero ' + bgClass + '" ' + sectionStyle + '><div class="lp-container">';
+          if (s.title) html += '<h1>' + esc(s.title) + '</h1>';
+          if (s.subtitle) html += '<p>' + esc(s.subtitle) + '</p>';
+          if (s.content) html += '<p>' + esc(s.content) + '</p>';
+          if (s.ctaText) html += '<a href="' + esc(s.ctaLink || '#') + '" class="btn-cta-landing">' + esc(s.ctaText) + '</a>';
+          if (s.image) html += '<img src="' + esc(s.image) + '" class="lp-image" alt="">';
+          html += '</div></div>';
+        } else if (s.type === 'features') {
+          var features = (s.content || '').split('\n').filter(Boolean).map(function(line) {
+            return '<div class="lp-feature-card ' + bgClass + '"><h3>' + esc(line) + '</h3></div>';
+          }).join('');
+          html += '<div class="lp-section ' + bgClass + '" ' + sectionStyle + '><div class="lp-container">';
+          if (s.title) html += '<h2>' + esc(s.title) + '</h2>';
+          if (s.subtitle) html += '<p class="subtitle">' + esc(s.subtitle) + '</p>';
+          html += '<div class="lp-features">' + (features || '<p style="opacity:0.5;">Add features</p>') + '</div></div></div>';
+        } else if (s.type === 'testimonials') {
+          var testimonials = (s.content || '').split('\n').filter(Boolean).map(function(line) {
+            return '<div class="lp-testimonial ' + bgClass + '"><p>' + esc(line) + '</p></div>';
+          }).join('');
+          html += '<div class="lp-section ' + bgClass + '" ' + sectionStyle + '><div class="lp-container">';
+          if (s.title) html += '<h2>' + esc(s.title) + '</h2>';
+          html += '<div class="lp-testimonials">' + (testimonials || '<p style="opacity:0.5;">Add testimonials</p>') + '</div></div></div>';
+        } else if (s.type === 'faq') {
+          var items = (s.content || '').split('\n').filter(Boolean).map(function(line) {
+            return '<div class="lp-faq-item ' + bgClass + '"><p>' + esc(line) + '</p></div>';
+          }).join('');
+          html += '<div class="lp-section ' + bgClass + '" ' + sectionStyle + '><div class="lp-container">';
+          if (s.title) html += '<h2>' + esc(s.title) + '</h2>';
+          html += '<div class="lp-faq">' + (items || '<p style="opacity:0.5;">Add FAQ items</p>') + '</div></div></div>';
+        } else {
+          html += '<div class="lp-section ' + bgClass + '" ' + sectionStyle + '><div class="lp-container">';
+          if (s.title) html += '<h2>' + esc(s.title) + '</h2>';
+          if (s.subtitle) html += '<p class="subtitle">' + esc(s.subtitle) + '</p>';
+          if (s.content) html += '<div>' + esc(s.content) + '</div>';
+          if (s.image) html += '<img src="' + esc(s.image) + '" class="lp-image" alt="">';
+          if (s.ctaText) html += '<div style="text-align:center;margin-top:1.5rem;"><a href="' + esc(s.ctaLink || '#') + '" class="btn-cta-landing">' + esc(s.ctaText) + '</a></div>';
+          html += '</div></div>';
+        }
+      });
+
+      var previewEl = document.getElementById('previewContent');
+      if (sections.length === 0) {
+        previewEl.innerHTML = '<div class="no-selection"><p>Add sections to see a live preview</p></div>';
+      } else {
+        previewEl.innerHTML = '<div class="lp-nav" style="border-bottom:1px solid rgba(0,0,0,0.06);padding:0.75rem 1.5rem;display:flex;justify-content:space-between;align-items:center;max-width:1000px;margin:0 auto;"><span style="font-weight:700;">CONTRAK.IO</span><span style="display:flex;gap:1rem;align-items:center;"><span style="font-size:0.85rem;">Log in</span><span style="background:#052E2B;color:#fff;padding:6px 16px;border-radius:999px;font-size:0.85rem;font-weight:600;">Sign up →</span></span></div>' + html + '<footer class="lp-footer"><p>&copy; 2024 Contrak</p></footer>';
+      }
+    }
+
+    document.getElementById('savePageBtn').addEventListener('click', async function() {
+      var data = getFormData();
+      if (!data.title) { showToast('error', 'Title is required'); return; }
+      if (data.sections.length === 0) { showToast('error', 'Add at least one section'); return; }
+      try {
+        if (editingPageId) {
+          await api('/api/pages/' + editingPageId, { method: 'PUT', body: JSON.stringify(data) });
+          showToast('success', 'Page updated!');
+          var p = (await api('/api/pages/' + editingPageId)).page;
+          showPublicUrl(p);
+        } else {
+          var result = await api('/api/pages', { method: 'POST', body: JSON.stringify(data) });
+          editingPageId = result.page.id;
+          document.getElementById('editorTitle').textContent = 'Edit: ' + esc(data.title);
+          showToast('success', 'Page created!');
+          showPublicUrl(result.page);
+        }
+        loadPages();
+      } catch(e) { showToast('error', e.message); }
+    });
+
+    async function duplicatePage(id) {
+      try {
+        var d = await api('/api/pages/' + id);
+        var p = d.page;
+        var data = {
+          title: p.title + ' (copy)',
+          slug: (p.slug || p.id) + '-copy',
+          description: p.description,
+          sections: p.sections || [],
+          theme: p.theme || { background: '#ffffff', textColor: '#111827', accentColor: '#2563EB' },
+          status: 'draft'
+        };
+        await api('/api/pages', { method: 'POST', body: JSON.stringify(data) });
+        showToast('success', 'Page duplicated!');
+        loadPages();
+      } catch(e) { showToast('error', e.message); }
+    }
+
+    async function deletePage(id) {
+      if (!confirm('Delete this page permanently?')) return;
+      try {
+        await api('/api/pages/' + id, { method: 'DELETE' });
+        showToast('success', 'Page deleted');
+        loadPages();
+      } catch(e) { showToast('error', e.message); }
+    }
+
+    document.getElementById('logoutBtn').addEventListener('click', async function() {
+      await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+      window.location.href = '/';
+    });
+
+    checkAuth();
+  </script>
+</body>
+</html>

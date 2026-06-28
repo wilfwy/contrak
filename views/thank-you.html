@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thank you - Contrak</title>
+  <link rel="stylesheet" href="/style.css">
+  <style>
+    .thank-you-container { max-width: 640px; margin: 4rem auto; padding: 2rem; text-align: center; }
+    .checkmark { width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #34D399, #059669); display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; font-size: 2.5rem; color: #fff; }
+    .order-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin: 2rem 0; text-align: left; }
+    .order-card h3 { color: var(--green-100); margin-bottom: 1rem; }
+    .order-item { display: flex; justify-content: space-between; padding: 0.75rem 0; border-bottom: 1px solid var(--border); color: var(--green-200); }
+    .order-item:last-child { border-bottom: none; }
+    .download-link { display: inline-flex; align-items: center; gap: 0.5rem; background: linear-gradient(135deg, #34D399, #059669); color: #fff; padding: 12px 32px; border-radius: 9999px; font-weight: 700; text-decoration: none; margin-top: 1rem; transition: transform 0.2s; }
+    .download-link:hover { transform: translateY(-2px); }
+  </style>
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="/" class="logo">CONTRAK.IO</a>
+      <button class="nav-toggle" aria-label="Open menu" aria-expanded="false"><span></span><span></span><span></span></button>
+      <ul class="nav-links">
+        <li><a href="/dashboard">Dashboard</a></li>
+        <li><a href="/products">Products</a></li>
+        <li><a href="/pricing">Pricing</a></li>
+        <li><button id="logoutBtn" class="btn btn-outline">Log out</button></li>
+      </ul>
+    </nav>
+  </header>
+  <div class="container">
+    <div class="thank-you-container">
+      <div class="checkmark"></div>
+      <h1 style="color:var(--green-100);">Payment Successful!</h1>
+      <p style="color:var(--text-muted);margin-bottom:2rem;">Thank you for your purchase. Your order is confirmed.</p>
+      <div id="orderDetails"><div class="loading"><div class="spinner"></div></div></div>
+      <a href="/dashboard" class="btn btn-primary" style="margin-top:1.5rem;">Back to Dashboard</a>
+    </div>
+  </div>
+
+  <script>
+    const toggle = document.querySelector('.nav-toggle');
+    const links = document.querySelector('.nav-links');
+    if (toggle && links) {
+      toggle.addEventListener('click', function() {
+        const isOpen = links.classList.toggle('nav-links--open');
+        toggle.classList.toggle('nav-toggle--open', isOpen);
+        toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      });
+    }
+
+    async function api(path, opts) {
+      const r = await fetch(path, { credentials: 'include', headers: { 'Content-Type': 'application/json' }, ...opts });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error || 'Request failed');
+      return d;
+    }
+
+    document.getElementById('logoutBtn')?.addEventListener('click', async function() {
+      await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+      window.location.href = '/';
+    });
+
+    (async function() {
+      const params = new URLSearchParams(window.location.search);
+      const orderId = params.get('orderId');
+      const sessionId = params.get('session_id');
+      let order = null;
+
+      if (orderId) {
+        try {
+          order = await api('/api/orders/' + orderId);
+          order = order.order;
+        } catch(e) { document.getElementById('orderDetails').innerHTML = '<p style="color:var(--text-muted);">Order loaded.</p>'; return; }
+      }
+
+      if (!order) {
+        document.getElementById('orderDetails').innerHTML = '<p style="color:var(--text-muted);">Your purchase is complete. Check your email for download links.</p>';
+        return;
+      }
+
+      const items = order.items && order.items.length ? order.items : (order.productVersionId ? [{ productVersionId: order.productVersionId, title: order.productVersionId, versionLabel: '' }] : []);
+      const total = order.totals?.finalTotal ? (order.totals.finalTotal / 100).toFixed(2) + ' ' + (order.currency || 'EUR') : '';
+
+      let html = '<div class="order-card"><h3>Order #' + (order.id ? order.id.slice(0, 8) : '') + '</h3>';
+      html += '<div class="order-item"><span>Status</span><span style="color:#34D399;font-weight:600;">' + order.status + '</span></div>';
+      if (total) html += '<div class="order-item"><span>Total</span><span style="font-weight:600;">' + total + '</span></div>';
+
+      if (order.status === 'paid' && items.length) {
+        html += '<div style="margin-top:1rem;"><h4 style="color:var(--green-200);margin-bottom:0.5rem;">Downloads</h4>';
+        items.forEach(function(item) {
+          const vid = item.productVersionId;
+          if (vid) {
+            html += '<a href="/api/exports/product-versions/' + vid + '" class="download-link" download>Download ' + (item.title || 'Product') + '</a>';
+          }
+        });
+        html += '</div>';
+      }
+      html += '</div>';
+      document.getElementById('orderDetails').innerHTML = html;
+    })();
+  </script>
+</body>
+</html>
