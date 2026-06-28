@@ -17,5 +17,7 @@ router.post('/transcribe-upload', quotaMiddleware('transcriptionsPerMonth'), upl
 router.post('/from-video', quotaMiddleware('ebooks'), ebookController.createFromVideo);
 router.post('/custom', quotaMiddleware('ebooks'), ebookController.createCustom);
 router.get('/export/:ebookId', ebookController.exportEbook);
+router.get('/data/:ebookId', ebookController.getEbookData);
+router.get('/preview/:ebookId', ebookController.getEbookData);
 
 module.exports = router;

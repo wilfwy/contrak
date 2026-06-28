@@ -110,6 +110,10 @@ app.get('/media', (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'media.html'));
 });
 
+app.get('/ebook-preview', (req, res) => {
+  res.sendFile(path.join(__dirname, 'views', 'ebook-preview.html'));
+});
+
 app.get('/orders-admin', (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'orders-admin.html'));
 });

@@ -316,7 +316,7 @@ async function generateEbookFromVideo(videoData, options = {}) {
     videoData.design
   );
   await waitForPdf(writeStream);
-  return { filePath: outputPath, ebookId };
+  return { filePath: outputPath, ebookId, chapters };
 }
 
 async function generateEbookChapters(title, description) {
@@ -368,7 +368,7 @@ async function generateCustomEbook(ebookData, options = {}) {
     ebookData.design
   );
   await waitForPdf(writeStream);
-  return { filePath: outputPath, ebookId };
+  return { filePath: outputPath, ebookId, chapters };
 }
 
 function getEbookFilePath(ebookId) {

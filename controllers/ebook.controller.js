@@ -18,13 +18,14 @@ const { createEbookRecord, countUserEbooks, listUserEbooks, getEbookByFileId } =
 const { recordAiUsage, getAiSuggestionsToday, getTranscriptionsThisMonth } = require('../services/quota.service');
 const fs = require('fs');
 
-async function saveEbookRecord(req, { ebookId, title, type, chapters, source, author }) {
+async function saveEbookRecord(req, { ebookId, title, type, chapters, chaptersData, source, author }) {
   await createEbookRecord({
     userId: req.userId,
     ebookId,
     title,
     type: type || 'custom',
-    chapters: chapters || 0,
+    chapters: chapters || (chaptersData ? chaptersData.length : 0),
+    chaptersData: chaptersData || [],
     source: source || 'manual',
     author: author || 'Contrak AI'
   });
@@ -99,12 +100,12 @@ async function createFromVideo(req, res) {
       return res.status(400).json({ error: 'Le titre est requis' });
     }
 
-    const { filePath, ebookId } = await generateEbookFromVideo(
+    const { filePath, ebookId, chapters } = await generateEbookFromVideo(
       { title, description, content, videoUrl },
       { allowAI: true }
     );
 
-    await saveEbookRecord(req, { ebookId, title, type: 'video', source: 'video' });
+    await saveEbookRecord(req, { ebookId, title, type: 'video', chaptersData: chapters, source: 'video' });
     res.json({ success: true, ebookId, title, message: 'Ebook créé avec succès' });
   } catch (error) {
     console.error('Error creating ebook from video:', error);
@@ -168,7 +169,7 @@ async function createCustom(req, res) {
     const isPro = req.userPlan === 'pro';
     const maxChapters = Infinity; // Removed chapter limit restriction
 
-    const { filePath, ebookId } = await generateCustomEbook(ebookData, {
+    const { filePath, ebookId, chapters } = await generateCustomEbook(ebookData, {
       allowAI: true,
       maxChapters
     });
@@ -177,7 +178,7 @@ async function createCustom(req, res) {
       ebookId,
       title: ebookData.title,
       type: 'custom',
-      chapters: ebookData.chapters ? ebookData.chapters.length : 0,
+      chaptersData: chapters,
       source: ebookData.chapters ? 'manual' : 'ai',
       author: ebookData.author
     });
@@ -235,6 +236,32 @@ async function getEbookStats(req, res) {
   }
 }
 
+async function getEbookData(req, res) {
+  try {
+    const { ebookId } = req.params;
+    const ebook = await getEbookByFileId(ebookId, req.userId);
+    if (!ebook) return res.status(404).json({ error: 'Ebook introuvable' });
+
+    const description = ebook.source === 'video' ? 'Créé à partir de votre vidéo' : 'Ebook personnalisé';
+    res.json({
+      ebook: {
+        ebookId: ebook.ebookId,
+        title: ebook.title || 'Ebook',
+        author: ebook.author || 'Contrak AI',
+        description: ebook.description || description,
+        source: ebook.source || 'manual',
+        chapters: (ebook.chaptersData || []).map(function(ch) {
+          if (typeof ch === 'string') return { title: ch, content: '' };
+          return { title: ch.title || '', content: ch.content || '' };
+        })
+      }
+    });
+  } catch (error) {
+    console.error('Error getting ebook data:', error);
+    res.status(500).json({ error: 'Erreur lors du chargement de l\'ebook' });
+  }
+}
+
 async function listEbooks(req, res) {
   try {
     const ebooks = await listUserEbooks(req.userId);
@@ -249,6 +276,7 @@ module.exports = {
   getSuggestions,
   getAISuggestions,
   listEbooks,
+  getEbookData,
   createFromVideo,
   createCustom,
   exportEbook,
