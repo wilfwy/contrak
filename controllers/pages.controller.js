@@ -87,7 +87,7 @@ async function remove(req, res) {
 
 async function aiGenerate(req, res) {
   try {
-    const { prompt } = req.body;
+    const { prompt, product_name, target_audience, tone, language, sections_wanted } = req.body;
     if (!prompt || !prompt.trim()) {
       return res.status(400).json({ error: 'La description est requise' });
     }
@@ -96,7 +96,15 @@ async function aiGenerate(req, res) {
       return res.status(503).json({ error: 'Service IA non disponible. Clé API Anthropic manquante.' });
     }
 
-    const result = await generatePageFromPrompt(prompt.trim());
+    const context = {
+      product_name,
+      target_audience,
+      tone: tone || 'professional',
+      language: language || 'fr',
+      sections_wanted: sections_wanted || ['hero', 'features', 'features', 'cta']
+    };
+
+    const result = await generatePageFromPrompt(prompt.trim(), context);
     await recordAiUsage(req.userId, 'suggestion');
     res.json({ page: result });
   } catch (error) {
@@ -105,4 +113,49 @@ async function aiGenerate(req, res) {
   }
 }
 
-module.exports = { listPages, create, getOne, update, remove, aiGenerate };
+async function regenerateSection(req, res) {
+  try {
+    const { section_type, prompt, page_context } = req.body;
+    if (!section_type) {
+      return res.status(400).json({ error: 'Type de section requis' });
+    }
+    if (!hasAnthropicKey()) {
+      return res.status(503).json({ error: 'Service IA non disponible.' });
+    }
+
+    const { callGrok, parseAIJsonResponse } = require('../services/grok.service');
+
+    const systemPrompt = `Tu es un expert en copywriting.
+Genere uniquement une section de type "${section_type}" pour une landing page.
+
+${
+  section_type === 'hero' ? `Retourne ce JSON exact :
+{"type":"hero","eyebrow":"...","headline":"...","subheadline":"...","cta_primary_text":"...","cta_primary_url":"#","cta_secondary_text":"","social_proof_text":"...","layout":"centered","background":"dark","image":""}` :
+  section_type === 'features' ? `Retourne ce JSON exact :
+{"type":"features","headline":"...","subheadline":"","layout":"grid-3","background":"light","items":[{"icon":"1","title":"...","description":"..."}]}` :
+  section_type === 'testimonials' ? `Retourne ce JSON exact :
+{"type":"testimonials","headline":"Ce que disent nos clients","layout":"grid","background":"dark","items":[{"quote":"...","author":"...","role":"...","stars":5,"result_highlight":"..."}]}` :
+  section_type === 'cta' ? `Retourne ce JSON exact :
+{"type":"cta","headline":"...","subheadline":"...","cta_primary_text":"...","cta_primary_url":"#","guarantee_text":"...","urgency_text":"","background":"accent"}` :
+  section_type === 'faq' ? `Retourne ce JSON exact :
+{"type":"faq","headline":"Questions frequentes","background":"light","items":[{"question":"...","answer":"..."}]}` :
+  section_type === 'problem' ? `Retourne ce JSON exact :
+{"type":"problem","headline":"Vous reconnaissez-vous ?","intro":"...","pain_points":[{"text":"..."}],"transition":"...","background":"light"}` :
+  section_type === 'stats' ? `Retourne ce JSON exact :
+{"type":"stats","headline":"Chiffres cles","background":"dark","items":[{"value":"...","label":"..."}]}` :
+  `Retourne un objet JSON avec type:"${section_type}" et les champs appropries`
+}
+
+Contenu authentique et persuasif. ${prompt ? 'Contexte : ' + prompt : ''}
+Retourne UNIQUEMENT le JSON, sans texte avant/apres.`;
+
+    const raw = await callGrok(systemPrompt, 1500);
+    const data = parseAIJsonResponse(raw);
+    res.json({ section: data });
+  } catch (error) {
+    console.error('regenerateSection error:', error);
+    res.status(500).json({ error: error.message || 'Erreur lors de la regeneration' });
+  }
+}
+
+module.exports = { listPages, create, getOne, update, remove, aiGenerate, regenerateSection };

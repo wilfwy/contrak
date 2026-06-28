@@ -114,25 +114,28 @@
     function render(page) {
       var sections = page.sections || [];
       var theme = page.theme || {};
-      var bgColor = theme.bg || '#0a0a1a';
-      var accentColor = theme.accent || '#34D399';
-      var textColor = theme.text || '#e2e8f0';
+      var bgColor = theme.background || theme.bg || '#0a0a1a';
+      var accentColor = theme.accentColor || theme.accent || '#34D399';
+      var textColor = theme.textColor || theme.text || '#e2e8f0';
       var mutedColor = theme.muted || '#94a3b8';
 
       var style = document.createElement('style');
       style.textContent = [
         '.section-hero h1 { background: linear-gradient(135deg, ' + textColor + ', ' + accentColor + '); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }',
+        '.section-hero .eyebrow { color: ' + accentColor + '; }',
         '.section-cta h2 { background: linear-gradient(135deg, ' + textColor + ', ' + accentColor + '); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }',
         '.section-hero::before { background: radial-gradient(circle, ' + accentColor.replace(')', ',0.04)') + ' 0%, transparent 70%); }',
         '.feature-card:hover { border-color: ' + accentColor + '44; }',
         '.feature-icon { background: ' + accentColor.replace(')', ',0.08)') + '; color: ' + accentColor + '; }',
         '.testimonial-card .author { color: ' + accentColor + '; }',
         '.faq-item .toggle { color: ' + accentColor + '; }',
-        '.btn-primary { background: linear-gradient(135deg, ' + accentColor + ', ' + accentColor.replace(')', ')').replace('(', '(darker:') || '#059669' + '); color: #000; }'
+        '.stat-value { color: ' + accentColor + '; }',
+        '.btn-primary { background: linear-gradient(135deg, ' + accentColor + ', #059669); color: #000; }',
+        '.section-problem .pain-point::before { border-color: ' + accentColor + '; }',
+        '.section-problem .transition { color: ' + accentColor + '; }'
       ].join('\n');
       document.head.appendChild(style);
 
-      // Override accent-dependent styles
       var root = document.documentElement;
       root.style.setProperty('--page-bg', bgColor);
       root.style.setProperty('--page-accent', accentColor);
@@ -143,27 +146,36 @@
 
       sections.forEach(function(s) {
         var type = s.type || 'content';
+        var headline = s.headline || s.title || '';
+        var subheadline = s.subheadline || s.subtitle || '';
+        var bgStyle = s.background ? '' : '';
+
         switch (type) {
           case 'hero':
             html += '<div class="section-hero">';
-            if (s.title) html += '<h1>' + escHtml(s.title) + '</h1>';
-            if (s.subtitle) html += '<p>' + escHtml(s.subtitle) + '</p>';
-            if (s.buttonText) {
-              html += '<a ' + (s.buttonUrl ? 'href="' + escHtml(s.buttonUrl) + '"' : '') + ' class="btn btn-primary">' + escHtml(s.buttonText) + '</a>';
-            }
+            if (s.eyebrow) html += '<p class="eyebrow" style="font-size:0.85rem;text-transform:uppercase;letter-spacing:2px;margin-bottom:0.75rem;opacity:0.7;">' + escHtml(s.eyebrow) + '</p>';
+            if (headline) html += '<h1>' + escHtml(headline) + '</h1>';
+            if (subheadline) html += '<p>' + escHtml(subheadline) + '</p>';
+            var ctaText = s.cta_primary_text || s.ctaText || s.buttonText || '';
+            var ctaUrl = s.cta_primary_url || s.ctaLink || s.buttonUrl || '#';
+            if (ctaText) html += '<a href="' + escHtml(ctaUrl) + '" class="btn btn-primary">' + escHtml(ctaText) + '</a>';
+            if (s.social_proof_text) html += '<p style="font-size:0.85rem;color:var(--page-muted);margin-top:1rem;">' + escHtml(s.social_proof_text) + '</p>';
             html += '</div>';
             break;
 
           case 'features':
             html += '<div class="section section-features">';
-            if (s.title) html += '<h2>' + escHtml(s.title) + '</h2>';
+            if (headline) html += '<h2>' + escHtml(headline) + '</h2>';
+            if (subheadline) html += '<p style="color:var(--page-muted);margin-bottom:2rem;">' + escHtml(subheadline) + '</p>';
             var items = s.items || [];
             html += '<div class="features-grid">';
-            items.forEach(function(item, i) {
+            items.forEach(function(item, idx) {
+              var title = item.title || item.name || '';
+              var desc = item.description || item.text || '';
               html += '<div class="feature-card">';
-              html += '<div class="feature-icon">' + ((i % 5) + 1) + '</div>';
-              html += '<h3>' + escHtml(item.title || '') + '</h3>';
-              if (item.description) html += '<p>' + escHtml(item.description) + '</p>';
+              html += '<div class="feature-icon">' + ((idx % 5) + 1) + '</div>';
+              html += '<h3>' + escHtml(title) + '</h3>';
+              if (desc) html += '<p>' + escHtml(desc) + '</p>';
               html += '</div>';
             });
             html += '</div></div>';
@@ -171,31 +183,36 @@
 
           case 'content':
             html += '<div class="section section-content">';
-            if (s.title) html += '<h2>' + escHtml(s.title) + '</h2>';
-            if (s.content) html += '<p>' + escHtml(s.content).replace(/\n/g, '</p><p>') + '</p>';
+            if (headline) html += '<h2>' + escHtml(headline) + '</h2>';
+            var body = s.body || s.content || '';
+            if (body) html += '<div>' + body + '</div>';
             html += '</div>';
             break;
 
           case 'cta':
             html += '<div class="section-wide section-cta">';
             html += '<div class="section-inner">';
-            if (s.title) html += '<h2>' + escHtml(s.title) + '</h2>';
-            if (s.subtitle) html += '<p>' + escHtml(s.subtitle) + '</p>';
-            if (s.buttonText) {
-              html += '<a ' + (s.buttonUrl ? 'href="' + escHtml(s.buttonUrl) + '"' : '') + ' class="btn btn-primary">' + escHtml(s.buttonText) + '</a>';
-            }
+            if (headline) html += '<h2>' + escHtml(headline) + '</h2>';
+            if (subheadline) html += '<p>' + escHtml(subheadline) + '</p>';
+            var ctaText2 = s.cta_primary_text || s.ctaText || s.buttonText || '';
+            var ctaUrl2 = s.cta_primary_url || s.ctaLink || s.buttonUrl || '#';
+            if (ctaText2) html += '<a href="' + escHtml(ctaUrl2) + '" class="btn btn-primary">' + escHtml(ctaText2) + '</a>';
+            if (s.guarantee_text) html += '<p style="font-size:0.85rem;color:var(--page-muted);margin-top:1rem;">' + escHtml(s.guarantee_text) + '</p>';
             html += '</div></div>';
             break;
 
           case 'testimonials':
             html += '<div class="section section-testimonials">';
-            if (s.title) html += '<h2>' + escHtml(s.title) + '</h2>';
+            if (headline) html += '<h2>' + escHtml(headline) + '</h2>';
             var items2 = s.items || [];
             html += '<div class="testimonials-grid">';
             items2.forEach(function(item) {
+              var quote = item.quote || item.content || '';
+              var author = item.author || '';
+              var role = item.role || '';
               html += '<div class="testimonial-card">';
-              if (item.content) html += '<p>' + escHtml(item.content) + '</p>';
-              if (item.author) html += '<div class="author">' + escHtml(item.author) + '</div>';
+              if (quote) html += '<p>' + escHtml(quote) + '</p>';
+              if (author || role) html += '<div class="author">' + escHtml(author) + (role ? ', ' + escHtml(role) : '') + '</div>';
               html += '</div>';
             });
             html += '</div></div>';
@@ -203,15 +220,40 @@
 
           case 'faq':
             html += '<div class="section section-faq">';
-            if (s.title) html += '<h2>' + escHtml(s.title) + '</h2>';
+            if (headline) html += '<h2>' + escHtml(headline) + '</h2>';
             var items3 = s.items || [];
-            items3.forEach(function(item, i) {
+            items3.forEach(function(item) {
+              var q = item.question || item.title || '';
+              var a = item.answer || item.content || '';
               html += '<div class="faq-item" onclick="this.classList.toggle(\'open\')">';
-              html += '<h3>' + escHtml(item.title || '') + ' <span class="toggle">+</span></h3>';
-              html += '<div class="answer">' + escHtml(item.content || '') + '</div>';
+              html += '<h3>' + escHtml(q) + ' <span class="toggle">+</span></h3>';
+              html += '<div class="answer">' + escHtml(a) + '</div>';
               html += '</div>';
             });
             html += '</div>';
+            break;
+
+          case 'problem':
+            html += '<div class="section section-problem">';
+            if (headline) html += '<h2 style="font-size:1.8rem;font-weight:700;margin-bottom:1rem;text-align:center;color:' + textColor + ';">' + escHtml(headline) + '</h2>';
+            if (s.intro) html += '<p style="text-align:center;color:var(--page-muted);margin-bottom:2rem;">' + escHtml(s.intro) + '</p>';
+            (s.pain_points || []).forEach(function(item) {
+              html += '<div class="pain-point" style="display:flex;align-items:flex-start;gap:0.75rem;margin-bottom:1rem;padding:1rem;background:rgba(255,255,255,0.02);border-radius:10px;border-left:3px solid ' + accentColor + ';">';
+              html += '<div style="flex:1;"><p style="color:' + textColor + ';">' + escHtml(item.text || '') + '</p></div></div>';
+            });
+            if (s.transition) html += '<p class="transition" style="text-align:center;font-weight:600;font-size:1.1rem;margin-top:2rem;">' + escHtml(s.transition) + '</p>';
+            html += '</div>';
+            break;
+
+          case 'stats':
+            html += '<div class="section-wide" style="padding:4.5rem 1.5rem;text-align:center;">';
+            if (headline) html += '<h2 style="font-size:1.8rem;font-weight:700;margin-bottom:2.5rem;color:' + textColor + ';">' + escHtml(headline) + '</h2>';
+            html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:2rem;max-width:800px;margin:0 auto;">';
+            (s.items || []).forEach(function(item) {
+              html += '<div><div class="stat-value" style="font-size:2.5rem;font-weight:800;color:' + accentColor + ';">' + escHtml(item.value || '') + '</div>';
+              html += '<div style="color:var(--page-muted);font-size:0.95rem;">' + escHtml(item.label || '') + '</div></div>';
+            });
+            html += '</div></div>';
             break;
         }
       });
