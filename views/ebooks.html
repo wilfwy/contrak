@@ -311,6 +311,7 @@
                 <p>${ebook.source || 'manual'} · ${ebook.chapters || 0} chapters · ${ebook.createdAt ? new Date(ebook.createdAt).toLocaleDateString('en-GB') : ''}</p>
               </div>
               <div class="actions">
+                <a href="/ebook-preview?id=${ebook.ebookId}" class="btn btn-small btn-outline">Preview</a>
                 <button class="btn btn-small btn-primary" onclick="downloadEbook('${ebook.ebookId}', '${escapeHtml(ebook.title || 'ebook')}')">Download PDF</button>
               </div>
             </div>
@@ -481,7 +482,7 @@
         });
         if (response.ok) {
           const data = await response.json();
-          showAlert('success', 'Ebook created!');
+          showAlert('success', 'Ebook created! <a href="/ebook-preview?id=' + data.ebookId + '" style="color:inherit;font-weight:600;">Preview →</a>');
           loadEbooks();
           loadEbookStats();
         } else {
@@ -525,7 +526,7 @@
         });
         if (response.ok) {
           const data = await response.json();
-          showAlert('success', 'Ebook created!');
+          showAlert('success', 'Ebook created! <a href="/ebook-preview?id=' + data.ebookId + '" style="color:inherit;font-weight:600;">Preview →</a>');
           loadEbooks();
           loadEbookStats();
         } else {
