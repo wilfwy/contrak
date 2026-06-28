@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Page - Contrak</title>
+  <link rel="stylesheet" href="/style.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #0a0a1a; color: #e2e8f0; font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; line-height: 1.6; min-height: 100vh; }
+
+    .topbar { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 0.75rem 1.5rem; background: rgba(10,10,26,0.8); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.06); display: flex; justify-content: space-between; align-items: center; }
+    .topbar .logo { font-weight: 800; font-size: 1.1rem; letter-spacing: 1px; color: #e2e8f0; text-decoration: none; }
+    .topbar .logo span { color: #34D399; }
+
+    .page { padding-top: 56px; }
+
+    /* Sections */
+    .section { padding: 4.5rem 1.5rem; max-width: 800px; margin: 0 auto; }
+    .section-wide { max-width: 100%; padding: 4.5rem 1.5rem; }
+    .section-inner { max-width: 800px; margin: 0 auto; }
+
+    /* Hero */
+    .section-hero { text-align: center; padding: 6rem 1.5rem 4rem; position: relative; overflow: hidden; }
+    .section-hero::before { content: ''; position: absolute; top: -40%; left: 50%; transform: translateX(-50%); width: 700px; height: 700px; background: radial-gradient(circle, rgba(52,211,153,0.04) 0%, transparent 70%); pointer-events: none; }
+    .section-hero h1 { font-size: 3rem; font-weight: 800; line-height: 1.15; margin-bottom: 1rem; background: linear-gradient(135deg, #e2e8f0, #34D399); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; position: relative; z-index: 1; }
+    .section-hero p { font-size: 1.15rem; color: #94a3b8; max-width: 560px; margin: 0 auto 1.5rem; line-height: 1.7; position: relative; z-index: 1; }
+    .section-hero .btn { position: relative; z-index: 1; }
+
+    /* Features */
+    .section-features { text-align: center; }
+    .section-features h2 { font-size: 1.8rem; font-weight: 700; margin-bottom: 2.5rem; color: #e2e8f0; }
+    .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem; }
+    .feature-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 14px; padding: 2rem 1.5rem; text-align: center; transition: transform 0.25s, border-color 0.25s; }
+    .feature-card:hover { transform: translateY(-4px); border-color: rgba(52,211,153,0.2); }
+    .feature-icon { width: 48px; height: 48px; border-radius: 12px; background: rgba(52,211,153,0.08); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 1.3rem; color: #34D399; font-weight: 700; }
+    .feature-card h3 { font-size: 1.05rem; font-weight: 600; margin-bottom: 0.5rem; color: #e2e8f0; }
+    .feature-card p { font-size: 0.9rem; color: #94a3b8; line-height: 1.6; }
+
+    /* Content */
+    .section-content { text-align: center; }
+    .section-content h2 { font-size: 1.8rem; font-weight: 700; margin-bottom: 1rem; color: #e2e8f0; }
+    .section-content p { color: #94a3b8; font-size: 1.05rem; line-height: 1.8; max-width: 600px; margin: 0 auto; }
+
+    /* CTA */
+    .section-cta { text-align: center; border-top: 1px solid rgba(255,255,255,0.04); border-bottom: 1px solid rgba(255,255,255,0.04); }
+    .section-cta h2 { font-size: 2rem; font-weight: 800; margin-bottom: 0.75rem; background: linear-gradient(135deg, #e2e8f0, #34D399); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .section-cta p { color: #94a3b8; margin-bottom: 1.5rem; font-size: 1.05rem; }
+
+    /* Testimonials */
+    .section-testimonials { text-align: center; }
+    .section-testimonials h2 { font-size: 1.8rem; font-weight: 700; margin-bottom: 2.5rem; color: #e2e8f0; }
+    .testimonials-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.25rem; }
+    .testimonial-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 14px; padding: 1.75rem; text-align: left; }
+    .testimonial-card p { color: #94a3b8; font-size: 0.95rem; line-height: 1.7; margin-bottom: 1rem; font-style: italic; }
+    .testimonial-card .author { color: #34D399; font-weight: 600; font-size: 0.9rem; }
+
+    /* FAQ */
+    .section-faq h2 { font-size: 1.8rem; font-weight: 700; margin-bottom: 2rem; text-align: center; color: #e2e8f0; }
+    .faq-item { border-bottom: 1px solid rgba(255,255,255,0.06); padding: 1.25rem 0; cursor: pointer; }
+    .faq-item h3 { font-size: 1rem; font-weight: 600; color: #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
+    .faq-item .toggle { color: #34D399; font-size: 1.2rem; transition: transform 0.2s; }
+    .faq-item.open .toggle { transform: rotate(45deg); }
+    .faq-item .answer { max-height: 0; overflow: hidden; transition: max-height 0.3s ease, padding 0.3s ease; color: #94a3b8; font-size: 0.95rem; line-height: 1.7; }
+    .faq-item.open .answer { max-height: 500px; padding-top: 0.75rem; }
+
+    .btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.9rem 2.5rem; border-radius: 12px; font-weight: 600; font-size: 1rem; border: none; cursor: pointer; transition: all 0.25s; text-decoration: none; }
+    .btn-primary { background: linear-gradient(135deg, #34D399, #059669); color: #000; }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(52,211,153,0.25); }
+
+    .footer { text-align: center; padding: 2rem 1.5rem; color: #64748b; font-size: 0.85rem; }
+
+    .loading-state { text-align: center; padding: 6rem 1.5rem; }
+    .spinner { width: 36px; height: 36px; border: 3px solid rgba(52,211,153,0.1); border-top-color: #34D399; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 1rem; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .alert-error { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2); color: #FCA5A5; padding: 1rem 1.5rem; border-radius: 10px; text-align: center; max-width: 800px; margin: 2rem auto; }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <a href="/" class="logo">CONTRAK<span>.</span>IO</a>
+  </div>
+
+  <div class="page" id="app">
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p style="color:#64748b;">Chargement...</p>
+    </div>
+  </div>
+
+  <div class="footer">Contrak.io</div>
+
+  <script>
+    var slug = window.location.pathname.replace('/l/', '');
+    var sectionsById = {};
+
+    (async function() {
+      try {
+        var resp = await fetch('/api/public/pages/' + slug);
+        if (!resp.ok) {
+          document.getElementById('app').innerHTML = '<div class="alert-error">Page not found</div>';
+          return;
+        }
+        var json = await resp.json();
+        var page = json.page;
+        document.title = page.title || 'Page - Contrak';
+        render(page);
+      } catch(e) {
+        document.getElementById('app').innerHTML = '<div class="alert-error">Error loading page</div>';
+      }
+    })();
+
+    function render(page) {
+      var sections = page.sections || [];
+      var theme = page.theme || {};
+      var bgColor = theme.bg || '#0a0a1a';
+      var accentColor = theme.accent || '#34D399';
+      var textColor = theme.text || '#e2e8f0';
+      var mutedColor = theme.muted || '#94a3b8';
+
+      var style = document.createElement('style');
+      style.textContent = [
+        '.section-hero h1 { background: linear-gradient(135deg, ' + textColor + ', ' + accentColor + '); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }',
+        '.section-cta h2 { background: linear-gradient(135deg, ' + textColor + ', ' + accentColor + '); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }',
+        '.section-hero::before { background: radial-gradient(circle, ' + accentColor.replace(')', ',0.04)') + ' 0%, transparent 70%); }',
+        '.feature-card:hover { border-color: ' + accentColor + '44; }',
+        '.feature-icon { background: ' + accentColor.replace(')', ',0.08)') + '; color: ' + accentColor + '; }',
+        '.testimonial-card .author { color: ' + accentColor + '; }',
+        '.faq-item .toggle { color: ' + accentColor + '; }',
+        '.btn-primary { background: linear-gradient(135deg, ' + accentColor + ', ' + accentColor.replace(')', ')').replace('(', '(darker:') || '#059669' + '); color: #000; }'
+      ].join('\n');
+      document.head.appendChild(style);
+
+      // Override accent-dependent styles
+      var root = document.documentElement;
+      root.style.setProperty('--page-bg', bgColor);
+      root.style.setProperty('--page-accent', accentColor);
+      root.style.setProperty('--page-text', textColor);
+      root.style.setProperty('--page-muted', mutedColor);
+
+      var html = '';
+
+      sections.forEach(function(s) {
+        var type = s.type || 'content';
+        switch (type) {
+          case 'hero':
+            html += '<div class="section-hero">';
+            if (s.title) html += '<h1>' + escHtml(s.title) + '</h1>';
+            if (s.subtitle) html += '<p>' + escHtml(s.subtitle) + '</p>';
+            if (s.buttonText) {
+              html += '<a ' + (s.buttonUrl ? 'href="' + escHtml(s.buttonUrl) + '"' : '') + ' class="btn btn-primary">' + escHtml(s.buttonText) + '</a>';
+            }
+            html += '</div>';
+            break;
+
+          case 'features':
+            html += '<div class="section section-features">';
+            if (s.title) html += '<h2>' + escHtml(s.title) + '</h2>';
+            var items = s.items || [];
+            html += '<div class="features-grid">';
+            items.forEach(function(item, i) {
+              html += '<div class="feature-card">';
+              html += '<div class="feature-icon">' + ((i % 5) + 1) + '</div>';
+              html += '<h3>' + escHtml(item.title || '') + '</h3>';
+              if (item.description) html += '<p>' + escHtml(item.description) + '</p>';
+              html += '</div>';
+            });
+            html += '</div></div>';
+            break;
+
+          case 'content':
+            html += '<div class="section section-content">';
+            if (s.title) html += '<h2>' + escHtml(s.title) + '</h2>';
+            if (s.content) html += '<p>' + escHtml(s.content).replace(/\n/g, '</p><p>') + '</p>';
+            html += '</div>';
+            break;
+
+          case 'cta':
+            html += '<div class="section-wide section-cta">';
+            html += '<div class="section-inner">';
+            if (s.title) html += '<h2>' + escHtml(s.title) + '</h2>';
+            if (s.subtitle) html += '<p>' + escHtml(s.subtitle) + '</p>';
+            if (s.buttonText) {
+              html += '<a ' + (s.buttonUrl ? 'href="' + escHtml(s.buttonUrl) + '"' : '') + ' class="btn btn-primary">' + escHtml(s.buttonText) + '</a>';
+            }
+            html += '</div></div>';
+            break;
+
+          case 'testimonials':
+            html += '<div class="section section-testimonials">';
+            if (s.title) html += '<h2>' + escHtml(s.title) + '</h2>';
+            var items2 = s.items || [];
+            html += '<div class="testimonials-grid">';
+            items2.forEach(function(item) {
+              html += '<div class="testimonial-card">';
+              if (item.content) html += '<p>' + escHtml(item.content) + '</p>';
+              if (item.author) html += '<div class="author">' + escHtml(item.author) + '</div>';
+              html += '</div>';
+            });
+            html += '</div></div>';
+            break;
+
+          case 'faq':
+            html += '<div class="section section-faq">';
+            if (s.title) html += '<h2>' + escHtml(s.title) + '</h2>';
+            var items3 = s.items || [];
+            items3.forEach(function(item, i) {
+              html += '<div class="faq-item" onclick="this.classList.toggle(\'open\')">';
+              html += '<h3>' + escHtml(item.title || '') + ' <span class="toggle">+</span></h3>';
+              html += '<div class="answer">' + escHtml(item.content || '') + '</div>';
+              html += '</div>';
+            });
+            html += '</div>';
+            break;
+        }
+      });
+
+      document.getElementById('app').innerHTML = html;
+
+      // Set body bg
+      document.body.style.backgroundColor = bgColor;
+    }
+
+    function escHtml(s) {
+      if (!s) return '';
+      var d = document.createElement('div');
+      d.textContent = s;
+      return d.innerHTML;
+    }
+  </script>
+</body>
+</html>

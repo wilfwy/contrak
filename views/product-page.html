@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Product - Contrak</title>
+  <link rel="stylesheet" href="/style.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #0a0a1a; color: #e2e8f0; font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; line-height: 1.6; min-height: 100vh; }
+
+    .topbar { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 0.75rem 1.5rem; background: rgba(10,10,26,0.8); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.06); display: flex; justify-content: space-between; align-items: center; }
+    .topbar .logo { font-weight: 800; font-size: 1.1rem; letter-spacing: 1px; color: #e2e8f0; text-decoration: none; }
+    .topbar .logo span { color: #34D399; }
+    .topbar nav { display: flex; gap: 1.5rem; align-items: center; }
+    .topbar nav a { color: #94a3b8; text-decoration: none; font-size: 0.85rem; font-weight: 500; transition: color 0.2s; }
+    .topbar nav a:hover { color: #34D399; }
+
+    .page { padding-top: 60px; }
+
+    /* Hero Section */
+    .hero { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 5rem 1.5rem 3rem; position: relative; overflow: hidden; }
+    .hero::before { content: ''; position: absolute; top: -50%; left: 50%; transform: translateX(-50%); width: 600px; height: 600px; background: radial-gradient(circle, rgba(52,211,153,0.04) 0%, transparent 70%); pointer-events: none; }
+    .hero-cover { width: 100%; max-width: 360px; border-radius: 16px; margin-bottom: 2.5rem; box-shadow: 0 20px 60px rgba(0,0,0,0.4); position: relative; z-index: 1; }
+    .hero-cover img { width: 100%; display: block; border-radius: 16px; }
+    .hero-cover .placeholder { aspect-ratio: 3/4; background: linear-gradient(135deg, #052E2B, #064E3B); border-radius: 16px; display: flex; align-items: center; justify-content: center; color: rgba(52,211,153,0.4); font-size: 3rem; }
+    .hero h1 { font-size: 2.8rem; font-weight: 800; line-height: 1.2; margin-bottom: 1rem; background: linear-gradient(135deg, #e2e8f0, #34D399); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; max-width: 600px; position: relative; z-index: 1; }
+    .hero p { font-size: 1.1rem; color: #94a3b8; max-width: 520px; line-height: 1.7; margin-bottom: 2rem; position: relative; z-index: 1; }
+    .hero .price { font-size: 2.5rem; font-weight: 800; color: #34D399; margin-bottom: 1.5rem; position: relative; z-index: 1; }
+    .hero .price small { font-size: 1rem; color: #64748b; font-weight: 400; }
+
+    .btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.9rem 2.5rem; border-radius: 12px; font-weight: 600; font-size: 1rem; border: none; cursor: pointer; transition: all 0.25s; text-decoration: none; }
+    .btn-primary { background: linear-gradient(135deg, #34D399, #059669); color: #000; }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(52,211,153,0.25); }
+    .btn-outline { background: transparent; border: 1.5px solid rgba(52,211,153,0.3); color: #34D399; }
+    .btn-outline:hover { border-color: #34D399; background: rgba(52,211,153,0.06); }
+
+    /* Version Selector */
+    .version-selector { margin-bottom: 2rem; position: relative; z-index: 1; }
+    .version-selector select { padding: 0.75rem 1.25rem; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; color: #e2e8f0; font-size: 0.95rem; min-width: 240px; cursor: pointer; outline: none; }
+    .version-selector select:focus { border-color: #34D399; }
+    .version-price { font-size: 1.2rem; color: #34D399; font-weight: 600; margin-top: 0.5rem; }
+
+    .separator { max-width: 200px; height: 1px; background: linear-gradient(90deg, transparent, rgba(52,211,153,0.2), transparent); margin: 0 auto 1rem; }
+
+    /* Details Grid */
+    .details { max-width: 800px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+    .details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 3rem; }
+    @media (max-width: 600px) { .details-grid { grid-template-columns: 1fr; } }
+    .detail-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 1.25rem; text-align: center; }
+    .detail-card h4 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; color: #64748b; margin-bottom: 0.5rem; }
+    .detail-card .value { font-size: 1.1rem; font-weight: 600; color: #34D399; }
+
+    /* Content */
+    .content-section { max-width: 680px; margin: 0 auto 3rem; }
+    .content-section h2 { font-size: 1.5rem; font-weight: 700; color: #e2e8f0; margin-bottom: 1rem; }
+    .content-section p { color: #94a3b8; line-height: 1.8; margin-bottom: 1rem; }
+
+    /* Reviews */
+    .reviews { max-width: 680px; margin: 0 auto 3rem; }
+    .reviews h2 { font-size: 1.5rem; font-weight: 700; color: #e2e8f0; margin-bottom: 1.5rem; text-align: center; }
+    .review-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; }
+    .review-card .stars { color: #FBBF24; font-size: 0.9rem; margin-bottom: 0.5rem; }
+    .review-card p { color: #94a3b8; font-size: 0.9rem; line-height: 1.6; }
+    .review-card .author { color: #64748b; font-size: 0.8rem; margin-top: 0.5rem; }
+
+    /* CTA */
+    .cta-section { text-align: center; padding: 4rem 1.5rem; position: relative; }
+    .cta-section::before { content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 200px; height: 1px; background: linear-gradient(90deg, transparent, rgba(52,211,153,0.2), transparent); }
+    .cta-section h2 { font-size: 1.8rem; font-weight: 700; color: #e2e8f0; margin-bottom: 0.75rem; }
+    .cta-section p { color: #94a3b8; margin-bottom: 1.5rem; }
+
+    /* Footer */
+    .footer { text-align: center; padding: 2rem 1.5rem; color: #64748b; font-size: 0.85rem; border-top: 1px solid rgba(255,255,255,0.04); }
+
+    /* Loading */
+    .loading-state { text-align: center; padding: 6rem 1.5rem; }
+    .spinner { width: 36px; height: 36px; border: 3px solid rgba(52,211,153,0.1); border-top-color: #34D399; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 1rem; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .alert { padding: 1rem 1.5rem; border-radius: 10px; margin-bottom: 1rem; text-align: center; }
+    .alert-error { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2); color: #FCA5A5; }
+    .alert-success { background: rgba(52,211,153,0.1); border: 1px solid rgba(52,211,153,0.2); color: #34D399; }
+
+    .auth-prompt { background: rgba(52,211,153,0.04); border: 1px solid rgba(52,211,153,0.12); border-radius: 12px; padding: 1rem 1.5rem; margin-bottom: 1.5rem; text-align: center; }
+    .auth-prompt a { color: #34D399; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <a href="/" class="logo">CONTRAK<span>.</span>IO</a>
+    <nav>
+      <a href="/pricing">Pricing</a>
+      <a href="/login">Sign in</a>
+    </nav>
+  </div>
+
+  <div class="page" id="app">
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p style="color:#64748b;">Chargement...</p>
+    </div>
+  </div>
+
+  <div class="footer">Contrak.io</div>
+
+  <script>
+    var slug = window.location.pathname.replace('/p/', '');
+    var product = null, versions = [], currentVersionId = null, user = null;
+
+    (async function init() {
+      try {
+        var resp = await fetch('/api/auth/me', { credentials: 'include' });
+        if (resp.ok) { var d = await resp.json(); user = d.user; }
+      } catch(e) {}
+      loadProduct();
+    })();
+
+    async function loadProduct() {
+      try {
+        var resp = await fetch('/api/public/products/' + slug);
+        if (!resp.ok) {
+          document.getElementById('app').innerHTML = '<div class="loading-state"><p style="color:#FCA5A5;font-size:1.2rem;font-weight:600;">Product not found</p><p style="color:#64748b;margin-top:0.5rem;">The product you are looking for does not exist or is unavailable.</p></div>';
+          return;
+        }
+        var json = await resp.json();
+        product = json.product;
+        versions = json.versions || [];
+        currentVersionId = versions.length > 0 ? versions[0].id : null;
+        render();
+      } catch(e) {
+        document.getElementById('app').innerHTML = '<div class="loading-state"><p style="color:#FCA5A5;">Error loading product</p></div>';
+      }
+    }
+
+    function getCurrentVersion() {
+      return versions.find(function(v) { return v.id === currentVersionId; }) || versions[0] || null;
+    }
+
+    function render() {
+      var app = document.getElementById('app');
+      var ver = getCurrentVersion();
+      var price = ver ? (ver.price || product.price || 0) : (product.price || 0);
+      var coverUrl = null;
+      if (product.coverMediaId) {
+        coverUrl = '/api/media/' + product.coverMediaId + '/serve';
+      }
+
+      // Build JSON-LD
+      var jsonld = {
+        '@context': 'https://schema.org',
+        '@type': 'Product',
+        name: product.title,
+        description: product.description || '',
+        offers: {
+          '@type': 'Offer',
+          price: (price / 100).toFixed(2),
+          priceCurrency: 'EUR',
+          availability: 'https://schema.org/InStock'
+        }
+      };
+
+      html = '';
+      html += '<script type="application/ld+json">' + JSON.stringify(jsonld) + '<\/script>';
+
+      html += '<div class="hero">';
+      html += '<div class="hero-cover">';
+      if (coverUrl) {
+        html += '<img src="' + coverUrl + '" alt="' + escHtml(product.title) + '">';
+      } else {
+        html += '<div class="placeholder">CONTRAK</div>';
+      }
+      html += '</div>';
+
+      html += '<h1>' + escHtml(product.title) + '</h1>';
+      if (product.description) html += '<p>' + escHtml(product.description) + '</p>';
+
+      if (versions.length > 0) {
+        html += '<div class="version-selector">';
+        html += '<select id="versionSelect" onchange="switchVersion(this.value)">';
+        versions.forEach(function(v, i) {
+          var vPrice = v.price || 0;
+          html += '<option value="' + v.id + '"' + (i === 0 ? ' selected' : '') + '>' + escHtml(v.versionLabel || 'Version ' + (i+1)) + ' - ' + (vPrice/100).toFixed(2) + '</option>';
+        });
+        html += '</select>';
+        html += '</div>';
+      }
+
+      html += '<div class="price">' + (price/100).toFixed(2) + ' <small>EUR</small></div>';
+
+      if (!user) {
+        html += '<div class="auth-prompt"><a href="/login">Sign in</a> or <a href="/register">create an account</a> to purchase</div>';
+      } else {
+        html += '<button class="btn btn-primary" onclick="buy()">Buy Now</button>';
+      }
+      html += '</div>';
+
+      // Details
+      html += '<div class="details">';
+      html += '<div class="details-grid">';
+      html += '<div class="detail-card"><h4>Format</h4><div class="value">Digital</div></div>';
+      html += '<div class="detail-card"><h4>Instant Download</h4><div class="value">Yes</div></div>';
+      if (versions.length) {
+        html += '<div class="detail-card"><h4>Versions</h4><div class="value">' + versions.length + '</div></div>';
+      }
+      html += '<div class="detail-card"><h4>License</h4><div class="value">Personal</div></div>';
+      html += '</div>';
+
+      // Content
+      if (ver && ver.description) {
+        html += '<div class="content-section"><h2>About this version</h2><p>' + escHtml(ver.description) + '</p></div>';
+      }
+
+      html += '</div>';
+
+      // Reviews
+      loadReviews(html);
+
+      // CTA
+      html += '<div class="cta-section">';
+      html += '<h2>Ready to get started?</h2>';
+      html += '<p>Get instant access after purchase.</p>';
+      if (user) {
+        html += '<button class="btn btn-primary" onclick="buy()">Buy Now - ' + (price/100).toFixed(2) + ' EUR</button>';
+      } else {
+        html += '<a href="/login" class="btn btn-primary">Sign in to buy</a>';
+      }
+      html += '</div>';
+    }
+
+    async function loadReviews(html) {
+      try {
+        var resp = await fetch('/api/reviews/' + product.id);
+        if (resp.ok) {
+          var json = await resp.json();
+          var reviews = json.reviews || [];
+          var avg = json.average || {};
+          if (reviews.length > 0) {
+            html += '<div class="reviews" id="reviewsSection">';
+            html += '<h2>Reviews (' + avg.count + ')</h2>';
+            reviews.forEach(function(r) {
+              html += '<div class="review-card">';
+              html += '<div class="stars">' + '&#9733;'.repeat(r.rating) + '&#9734;'.repeat(5 - r.rating) + '</div>';
+              html += '<p>' + escHtml(r.comment || '') + '</p>';
+              html += '<div class="author">' + escHtml(r.userName || 'Anonymous') + '</div>';
+              html += '</div>';
+            });
+            html += '</div>';
+          }
+        }
+      } catch(e) {}
+      html += '</div>'; // close details
+      document.getElementById('app').innerHTML = html;
+    }
+
+    function switchVersion(versionId) {
+      currentVersionId = versionId;
+      render();
+    }
+
+    async function buy() {
+      var ver = getCurrentVersion();
+      if (!ver) { showAlert('error', 'No version selected'); return; }
+      try {
+        var resp = await fetch('/api/orders/create-checkout-session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ productVersionId: ver.id })
+        });
+        if (resp.ok) {
+          var json = await resp.json();
+          if (json.url) window.location.href = json.url;
+        } else {
+          var err = await resp.json().catch(function(){ return {error:'Error'} });
+          showAlert('error', err.error || 'Error');
+        }
+      } catch(e) {
+        showAlert('error', e.message);
+      }
+    }
+
+    function showAlert(type, msg) {
+      var app = document.getElementById('app');
+      var a = document.createElement('div');
+      a.className = 'alert alert-' + type;
+      a.textContent = msg;
+      app.insertBefore(a, app.firstChild);
+      setTimeout(function() { a.remove(); }, 4000);
+    }
+
+    function escHtml(s) {
+      if (!s) return '';
+      var d = document.createElement('div');
+      d.textContent = s;
+      return d.innerHTML;
+    }
+  </script>
+</body>
+</html>
