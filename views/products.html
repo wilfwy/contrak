@@ -202,6 +202,16 @@
         </div>
         <div class="form-group">
           <label>Ebook Content</label>
+          <div style="display:flex;gap:0.5rem;margin-bottom:0.75rem;">
+            <button type="button" id="verEbookModeManual" class="btn btn-small btn-primary" onclick="setVersionEbookMode('manual')">Manual entry</button>
+            <button type="button" id="verEbookModeSelect" class="btn btn-small btn-outline" onclick="setVersionEbookMode('select')">From existing ebook</button>
+          </div>
+          <div id="verEbookSelector" style="display:none;margin-bottom:0.75rem;">
+            <select id="verEbookSelect" style="width:100%;padding:0.6rem;" onchange="loadEbookChapters()">
+              <option value="">Select an ebook...</option>
+            </select>
+            <div id="verEbookLoading" style="display:none;color:var(--text-muted);font-size:0.85rem;margin-top:0.25rem;">Loading chapters...</div>
+          </div>
           <div id="chaptersContainer">
             <div class="chapter-item" style="border:1px solid var(--border);border-radius:8px;padding:1rem;margin-bottom:0.75rem;background:rgba(52,211,153,0.03);">
               <div class="form-group" style="margin-bottom:0.5rem;">
@@ -442,6 +452,64 @@
       document.getElementById('verProductId').value = productId;
       document.getElementById('versionForm').reset();
       document.getElementById('versionModal').classList.add('open');
+    }
+
+    let versionEbookMode = 'manual';
+    let versionEbooksCache = [];
+
+    async function populateVersionEbooks() {
+      try {
+        const d = await api('/api/ebooks');
+        versionEbooksCache = d.ebooks || [];
+        const sel = document.getElementById('verEbookSelect');
+        sel.innerHTML = '<option value="">Select an ebook...</option>' +
+          versionEbooksCache.map(e => '<option value="' + (e.ebookId || e.id) + '">' + (e.title || 'Untitled') + '</option>').join('');
+      } catch(e) { console.error('Failed to load ebooks', e); }
+    }
+
+    function setVersionEbookMode(mode) {
+      versionEbookMode = mode;
+      document.getElementById('verEbookModeManual').className = mode === 'manual' ? 'btn btn-small btn-primary' : 'btn btn-small btn-outline';
+      document.getElementById('verEbookModeSelect').className = mode === 'select' ? 'btn btn-small btn-primary' : 'btn btn-small btn-outline';
+      document.getElementById('verEbookSelector').style.display = mode === 'select' ? 'block' : 'none';
+      if (mode === 'select') populateVersionEbooks();
+    }
+
+    async function loadEbookChapters() {
+      const sel = document.getElementById('verEbookSelect');
+      const ebookId = sel.value;
+      if (!ebookId) return;
+      const loading = document.getElementById('verEbookLoading');
+      loading.style.display = 'block';
+      try {
+        const d = await api('/api/ebooks/data/' + ebookId);
+        const chapters = d.ebook && d.ebook.chapters ? d.ebook.chapters : (d.chapters || []);
+        const container = document.getElementById('chaptersContainer');
+        container.innerHTML = '';
+        if (chapters.length === 0) {
+          addChapter();
+        } else {
+          chapters.forEach(function(ch) {
+            const div = document.createElement('div');
+            div.className = 'chapter-item';
+            div.style.cssText = 'border:1px solid var(--border);border-radius:8px;padding:1rem;margin-bottom:0.75rem;background:rgba(52,211,153,0.03);';
+            div.innerHTML = '<div class="form-group" style="margin-bottom:0.5rem;"><input type="text" class="chapter-title" value="' + escHtml(ch.title || '') + '" placeholder="Chapter title" style="width:100%;padding:0.6rem;background:var(--dark);border:1px solid var(--border);color:var(--green-100);border-radius:6px;"></div><div class="form-group"><textarea class="chapter-content" rows="4" placeholder="Write your chapter content here..." style="width:100%;padding:0.6rem;background:var(--dark);border:1px solid var(--border);color:var(--green-100);border-radius:6px;">' + escHtml(ch.content || '') + '</textarea></div><button type="button" class="btn btn-small btn-outline remove-chapter" style="margin-top:0.25rem;font-size:0.8rem;color:#EF4444;border-color:#EF4444;" onclick="removeChapter(this)">Remove chapter</button>';
+            container.appendChild(div);
+          });
+        }
+        showAlert('success', 'Loaded ' + chapters.length + ' chapter(s) from ebook');
+      } catch(e) {
+        showAlert('error', 'Failed to load ebook chapters');
+        console.error(e);
+      }
+      loading.style.display = 'none';
+    }
+
+    function escHtml(str) {
+      if (!str) return '';
+      var d = document.createElement('div');
+      d.textContent = str;
+      return d.innerHTML;
     }
 
     function addChapter() {
