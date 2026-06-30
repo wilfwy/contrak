@@ -11,8 +11,8 @@ async function createCheckoutSession(userId, userEmail) {
         price_data: {
           currency: 'eur',
           product_data: {
-            name: 'Plan PRO - Contrak',
-            description: 'Accès illimité à tous les contrats sans watermark'
+            name: 'PRO Plan - Contrak',
+            description: 'Unlimited access to all contracts without watermark'
           },
           unit_amount: 990, // 9.90 EUR en centimes
           recurring: {
@@ -88,7 +88,7 @@ async function createDigitalCheckoutSession({
         currency,
         product_data: {
           name: 'Contrak - Digital product',
-          description: 'Accès à votre version digitale'
+          description: 'Access to your digital version'
         },
         unit_amount: normalizedAmount
       },

@@ -55,7 +55,7 @@
   <header>
     <nav>
       <a href="/" class="logo">CONTRAK.IO</a>
-      <button class="nav-toggle" aria-label="Ouvrir le menu" aria-expanded="false">
+      <button class="nav-toggle" aria-label="Open menu" aria-expanded="false">
         <span></span><span></span><span></span>
       </button>
       <ul class="nav-links">
@@ -77,8 +77,8 @@
 
   <div class="container">
     <div class="hero-ebooks">
-      <h1>Générateur d'Ebooks IA</h1>
-      <p>Créez des ebooks professionnels en quelques minutes — depuis des vidéos, transcriptions, ou de zéro avec l'IA.</p>
+      <h1>AI Ebook Generator</h1>
+      <p>Create professional ebooks in minutes — from videos, transcriptions, or from scratch with AI.</p>
     </div>
 
     <div id="alertContainer"></div>
@@ -97,27 +97,27 @@
 
     <!-- AI Suggestions -->
     <div class="ebook-section" id="aiSection">
-      <h2>Suggestions d'Ebooks par IA</h2>
+      <h2>AI Ebook Suggestions</h2>
       <form id="aiSuggestionsForm" style="margin-bottom: 1.5rem;">
         <div class="ai-input-group">
-          <input type="text" id="aiTopic" placeholder="Thème (ex: Marketing Digital, Développement Web, Finance...)" style="color:var(--green-100);background:var(--dark);border:1px solid var(--border);">
-          <button type="submit" class="btn btn-primary">Générer des suggestions</button>
+          <input type="text" id="aiTopic" placeholder="Topic (e.g. Digital Marketing, Web Development, Finance...)" style="color:var(--green-100);background:var(--dark);border:1px solid var(--border);">
+          <button type="submit" class="btn btn-primary">Generate suggestions</button>
         </div>
       </form>
       <div id="suggestionsGrid" class="suggestions-grid">
         <div class="loading-suggestions">
           <div class="spinner"></div>
-          <p style="margin-left: 1rem;">Chargement des suggestions...</p>
+          <p style="margin-left: 1rem;">Loading suggestions...</p>
         </div>
       </div>
     </div>
 
     <!-- Source tabs -->
     <div class="ebook-section">
-      <h2>Créer un ebook</h2>
+      <h2>Create an ebook</h2>
       <div class="source-tabs">
-        <div class="source-tab active" data-tab="video">Depuis une Vidéo</div>
-        <div class="source-tab" data-tab="custom">Personnalisé</div>
+        <div class="source-tab active" data-tab="video">From a Video</div>
+        <div class="source-tab" data-tab="custom">Custom</div>
       </div>
 
       <!-- From video -->
@@ -129,40 +129,40 @@
             <span class="platform-badge">Instagram</span>
           </div>
           <div class="url-input-group">
-            <input type="url" id="videoUrl" placeholder="Collez une URL YouTube, TikTok ou Instagram..." style="color:var(--green-100);background:var(--dark);border:1px solid var(--border);" class="form-group">
-            <button type="button" id="transcribeBtn" class="btn btn-outline">Transcrire</button>
+            <input type="url" id="videoUrl" placeholder="Paste a YouTube, TikTok or Instagram URL..." style="color:var(--green-100);background:var(--dark);border:1px solid var(--border);" class="form-group">
+            <button type="button" id="transcribeBtn" class="btn btn-outline">Transcribe</button>
           </div>
           <div class="transcription-status" id="transcriptionStatus"></div>
           <div class="form-group">
-            <label>Titre</label>
-            <input type="text" id="videoTitle" placeholder="Titre de l'ebook...">
+            <label>Title</label>
+            <input type="text" id="videoTitle" placeholder="Ebook title...">
           </div>
           <div class="form-group">
             <label>Description</label>
-            <textarea id="videoDescription" placeholder="Description de l'ebook..." rows="2"></textarea>
+            <textarea id="videoDescription" placeholder="Ebook description..." rows="2"></textarea>
           </div>
           <div class="form-group">
-            <label>Contenu (ou transcrivez depuis l'URL ci-dessus)</label>
-            <textarea id="videoContent" placeholder="Collez votre transcription ou contenu ici..." rows="6"></textarea>
+            <label>Content (or transcribe from the URL above)</label>
+            <textarea id="videoContent" placeholder="Paste your transcription or content here..." rows="6"></textarea>
           </div>
           <details style="margin-top:0.5rem;border:1px solid var(--border);border-radius:8px;padding:0.75rem 1rem;background:rgba(52,211,153,0.02);cursor:pointer;">
-            <summary style="font-weight:600;color:var(--green-200);font-size:0.95rem;cursor:pointer;">Options de design</summary>
+            <summary style="font-weight:600;color:var(--green-200);font-size:0.95rem;cursor:pointer;">Design options</summary>
             <div style="display:flex;gap:1.5rem;flex-wrap:wrap;margin-top:1rem;cursor:default;">
               <div class="form-group" style="flex:1;min-width:140px;">
-                <label>Couleur de couverture</label>
+                <label>Cover color</label>
                 <input type="color" id="designCoverBgVid" value="#052e2b" style="height:40px;padding:4px;cursor:pointer;">
               </div>
               <div class="form-group" style="flex:1;min-width:140px;">
-                <label>Couleur d'accent</label>
+                <label>Accent color</label>
                 <input type="color" id="designAccentVid" value="#34d399" style="height:40px;padding:4px;cursor:pointer;">
               </div>
               <div class="form-group" style="flex:1;min-width:140px;">
-                <label>Couleur du texte</label>
+                <label>Text color</label>
                 <input type="color" id="designTextVid" value="#1f2937" style="height:40px;padding:4px;cursor:pointer;">
               </div>
             </div>
           </details>
-          <button type="submit" class="btn btn-primary">Générer l'ebook</button>
+          <button type="submit" class="btn btn-primary">Generate ebook</button>
         </form>
       </div>
 
@@ -170,41 +170,41 @@
       <div id="panel-custom" class="source-panel">
         <form id="customForm">
           <div class="form-group">
-            <label>Titre de l'ebook</label>
-            <input type="text" id="customTitle" placeholder="Titre de l'ebook..." required>
+            <label>Ebook title</label>
+            <input type="text" id="customTitle" placeholder="Ebook title..." required>
           </div>
           <div class="form-group">
-            <label>Auteur</label>
-            <input type="text" id="customAuthor" placeholder="Nom de l'auteur...">
+            <label>Author</label>
+            <input type="text" id="customAuthor" placeholder="Author name...">
           </div>
           <div class="form-group">
-            <label>Chapitres</label>
+            <label>Chapters</label>
             <div id="chaptersContainer">
               <div class="chapter-item">
-                <input type="text" class="chapter-title" placeholder="Titre du chapitre 1" required>
-                <textarea class="chapter-content" placeholder="Contenu (laissez vide pour génération IA...)" rows="3"></textarea>
+                <input type="text" class="chapter-title" placeholder="Chapter 1 title" required>
+                <textarea class="chapter-content" placeholder="Content (leave blank for AI generation...)" rows="3"></textarea>
               </div>
             </div>
-            <button type="button" id="addChapterBtn" class="btn add-chapter-btn">+ Ajouter un chapitre</button>
+            <button type="button" id="addChapterBtn" class="btn add-chapter-btn">+ Add a chapter</button>
           </div>
           <details style="margin-top:0.5rem;border:1px solid var(--border);border-radius:8px;padding:0.75rem 1rem;background:rgba(52,211,153,0.02);cursor:pointer;">
-            <summary style="font-weight:600;color:var(--green-200);font-size:0.95rem;cursor:pointer;">Options de design</summary>
+            <summary style="font-weight:600;color:var(--green-200);font-size:0.95rem;cursor:pointer;">Design options</summary>
             <div style="display:flex;gap:1.5rem;flex-wrap:wrap;margin-top:1rem;cursor:default;">
               <div class="form-group" style="flex:1;min-width:140px;">
-                <label>Couleur de couverture</label>
+                <label>Cover color</label>
                 <input type="color" id="designCoverBg" value="#052e2b" style="height:40px;padding:4px;cursor:pointer;">
               </div>
               <div class="form-group" style="flex:1;min-width:140px;">
-                <label>Couleur d'accent</label>
+                <label>Accent color</label>
                 <input type="color" id="designAccent" value="#34d399" style="height:40px;padding:4px;cursor:pointer;">
               </div>
               <div class="form-group" style="flex:1;min-width:140px;">
-                <label>Couleur du texte</label>
+                <label>Text color</label>
                 <input type="color" id="designText" value="#1f2937" style="height:40px;padding:4px;cursor:pointer;">
               </div>
             </div>
           </details>
-          <button type="submit" class="btn btn-primary">Générer l'ebook</button>
+          <button type="submit" class="btn btn-primary">Generate ebook</button>
         </form>
       </div>
     </div>
@@ -264,7 +264,7 @@
         loadEbooks();
         loadSuggestions();
       } catch (error) {
-        console.error('Erreur auth:', error);
+        console.error('Auth error:', error);
         window.location.href = '/login';
       }
     }
@@ -286,7 +286,7 @@
           }
         }
       } catch (error) {
-        console.error('Erreur stats:', error);
+        console.error('Stats error:', error);
       }
     }
 
@@ -336,7 +336,7 @@
         const suggestions = data.suggestions || [];
         renderSuggestions(suggestions);
       } catch (error) {
-        console.error('Erreur chargement suggestions:', error);
+        console.error('Error loading suggestions:', error);
         document.getElementById('suggestionsGrid').innerHTML = '<div class="alert alert-error">Error loading suggestions</div>';
       }
     }
@@ -410,7 +410,7 @@
           loadSuggestions();
         }
       } catch (error) {
-        console.error('Erreur:', error);
+        console.error('Error:', error);
         showAlert('error', 'Error generating AI suggestions');
         loadSuggestions();
       }
@@ -450,7 +450,7 @@
           status.textContent = '';
         }
       } catch (error) {
-        console.error('Erreur:', error);
+        console.error('Error:', error);
         showAlert('error', 'Error during transcription');
         status.textContent = '';
       }
@@ -489,7 +489,7 @@
           await handleApiError(response, 'Error generating ebook');
         }
       } catch (error) {
-        console.error('Erreur:', error);
+        console.error('Error:', error);
         showAlert('error', 'Error generating ebook');
       }
     });
@@ -533,7 +533,7 @@
           await handleApiError(response, 'Error generating ebook');
         }
       } catch (error) {
-        console.error('Erreur:', error);
+        console.error('Error:', error);
         showAlert('error', 'Error generating ebook');
       }
     });

@@ -70,7 +70,7 @@
   <div class="preview-container" id="app">
     <div class="loading-state">
       <div class="spinner"></div>
-      <p style="color:var(--text-muted);">Chargement de l'aperçu...</p>
+      <p style="color:var(--text-muted);">Loading preview...</p>
     </div>
   </div>
 
@@ -79,7 +79,7 @@
     var ebookId = params.get('id') || params.get('ebookId');
 
     if (!ebookId) {
-      document.getElementById('app').innerHTML = '<div class="alert alert-error">Aucun ebook spécifié.</div>';
+      document.getElementById('app').innerHTML = '<div class="alert alert-error">No ebook specified.</div>';
     } else {
       loadPreview(ebookId);
     }
@@ -88,8 +88,8 @@
       try {
         var resp = await fetch('/api/ebooks/data/' + id, { credentials: 'include' });
         if (!resp.ok) {
-          var err = await resp.json().catch(function(){return{error:'Erreur'}});
-          document.getElementById('app').innerHTML = '<div class="alert alert-error">' + (err.error || 'Erreur de chargement') + '</div>';
+          var err = await resp.json().catch(function(){return{error:'Error'}});
+          document.getElementById('app').innerHTML = '<div class="alert alert-error">' + (err.error || 'Loading error') + '</div>';
           return;
         }
         var json = await resp.json();
@@ -120,7 +120,7 @@
 
       // TOC
       if (chapters.length) {
-        html += '<div class="toc"><h2>Table des matières</h2><div class="toc-line"></div>';
+        html += '<div class="toc"><h2>Table of Contents</h2><div class="toc-line"></div>';
         chapters.forEach(function(ch, i) {
           html += '<div class="toc-item">' +
             '<span class="toc-num">' + pad(i+1, 2) + '.</span>' +
@@ -133,7 +133,7 @@
 
       // Chapters
       chapters.forEach(function(ch, i) {
-        var content = ch.content || 'Contenu à venir...';
+        var content = ch.content || 'Content coming soon...';
         var paragraphs = content.split(/\n+/).filter(function(p){return p.trim();});
         html += '<div class="chapter">' +
           '<div class="chapter-header">' +

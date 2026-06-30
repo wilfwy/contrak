@@ -87,10 +87,13 @@
 
     <div class="profile-section danger-zone" style="display:none;" id="adminSection">
       <h2>Super Admin</h2>
+      <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:1rem;">
+        <a href="/super-admin" class="btn btn-primary">Open Super Admin Dashboard</a>
+      </div>
       <p style="color:var(--text-muted);margin-bottom:1rem;">Promote another user to super admin by their UID.</p>
       <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
         <input type="text" id="adminUid" placeholder="User UID" style="background:var(--dark);border:1px solid var(--border);color:var(--green-100);padding:0.75rem;border-radius:8px;flex:1;min-width:200px;">
-        <button id="makeSuperBtn" class="btn btn-primary">Make Super Admin</button>
+        <button id="makeSuperBtn" class="btn btn-outline">Make Super Admin</button>
       </div>
     </div>
   </div>

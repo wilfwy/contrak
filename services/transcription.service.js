@@ -72,7 +72,7 @@ async function getVideoMetadata(url) {
   });
 
   return {
-    title: info.title || 'Vidéo sans titre',
+    title: info.title || 'Untitled Video',
     description: info.description || '',
     duration: info.duration || 0,
     platform: info.extractor_key || 'unknown'
@@ -171,7 +171,7 @@ async function prepareAudioForWhisper(audioPath, workDir) {
   ]);
 
   if (fs.statSync(compressedPath).size > WHISPER_MAX_BYTES) {
-    throw new Error('Vidéo trop longue pour la transcription automatique (essayez une vidéo plus courte)');
+    throw new Error('Video too long for automatic transcription (try a shorter video)');
   }
 
   return compressedPath;
@@ -179,7 +179,7 @@ async function prepareAudioForWhisper(audioPath, workDir) {
 
 async function transcribeWithWhisper(audioPath) {
   if (!hasOpenAIKey()) {
-    throw new Error('Clé API Groq requise pour transcrire l\'audio. Ajoutez GROK_API_KEY dans .env');
+    throw new Error('Groq API key required to transcribe audio. Add GROK_API_KEY to .env');
   }
 
   const groq = new OpenAI({
@@ -192,7 +192,7 @@ async function transcribeWithWhisper(audioPath) {
   const transcription = await groq.audio.transcriptions.create({
     file: fs.createReadStream(preparedPath),
     model: 'whisper-large-v3-turbo',
-    language: 'fr'
+    language: 'en'
   });
 
   return transcription.text;
@@ -200,7 +200,7 @@ async function transcribeWithWhisper(audioPath) {
 
 async function transcribeFromUrl(url) {
   if (!isSupportedVideoUrl(url)) {
-    throw new Error('URL non supportée. Utilisez un lien YouTube, TikTok ou Instagram.');
+    throw new Error('Unsupported URL. Use a YouTube, TikTok, or Instagram link.');
   }
 
   const workDir = path.join(TEMP_DIR, 'url-' + Date.now());
@@ -252,7 +252,7 @@ async function transcribeFromFile(filePath, originalName) {
     if (videoExtensions.includes(ext)) {
       audioPath = await extractAudioFromVideo(storedPath, workDir);
     } else if (!audioExtensions.includes(ext)) {
-      throw new Error('Format de fichier non supporté. Utilisez MP4, MOV, MP3, WAV ou WebM.');
+      throw new Error('Unsupported file format. Use MP4, MOV, MP3, WAV, or WebM.');
     }
 
     const transcription = await transcribeWithWhisper(audioPath);

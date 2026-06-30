@@ -121,7 +121,7 @@
 
     let currentUser = null;
 
-    // Vérifier l'authentification
+    // Check authentication
     async function checkAuth() {
       try {
         const response = await fetch('/api/auth/me', {
@@ -136,16 +136,16 @@
         const data = await response.json();
         currentUser = data.user;
       } catch (error) {
-        console.error('Erreur auth:', error);
+        console.error('Auth error:', error);
         window.location.href = '/login';
       }
     }
 
-    // Créer le contrat
+    // Create contract
     document.getElementById('contractForm').addEventListener('submit', async function(e) {
       e.preventDefault();
 
-      // Récupérer les clauses sélectionnées
+      // Get selected clauses
       const clauses = [];
       if (document.getElementById('clauseConfidentialite').checked) {
         clauses.push('confidentialite');

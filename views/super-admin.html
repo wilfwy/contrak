@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Super Admin - Contrak</title>
+  <link rel="stylesheet" href="/style.css">
+  <style>
+    .sa-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+    .sa-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; }
+    .sa-card .label { color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; }
+    .sa-card .value { font-size: 1.75rem; font-weight: 700; color: var(--green-100); margin-top: 0.25rem; }
+    .sa-card .sub { font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem; }
+    .sa-section { margin-bottom: 2rem; }
+    .sa-section h2 { color: var(--green-100); margin-bottom: 1rem; font-size: 1.2rem; }
+    .sa-table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 12px; }
+    .sa-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    .sa-table th { text-align: left; padding: 0.75rem 1rem; background: rgba(52,211,153,0.05); color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.75rem; border-bottom: 1px solid var(--border); }
+    .sa-table td { padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); color: var(--green-100); }
+    .sa-table tr:last-child td { border-bottom: none; }
+    .sa-table tr:hover td { background: rgba(52,211,153,0.03); }
+    .badge-plan { display: inline-block; padding: 0.15rem 0.6rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+    .badge-plan.basic { background: rgba(107,114,128,0.2); color: #9CA3AF; }
+    .badge-plan.pro { background: rgba(52,211,153,0.15); color: var(--green-300); }
+    .badge-role { display: inline-block; padding: 0.15rem 0.6rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+    .badge-role.super { background: rgba(251,191,36,0.15); color: #FBBF24; }
+    .badge-role.user { background: rgba(99,102,241,0.12); color: #818CF8; }
+    .plan-select { background: var(--dark); border: 1px solid var(--border); color: var(--green-100); padding: 0.4rem 0.5rem; border-radius: 6px; font-size: 0.8rem; }
+    .plan-select:focus { outline: none; border-color: var(--green-500); }
+    .btn-plan { padding: 0.3rem 0.75rem; font-size: 0.75rem; }
+    .search-bar { display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap; }
+    .search-bar input { flex: 1; min-width: 200px; background: var(--dark); border: 1px solid var(--border); color: var(--green-100); padding: 0.6rem 0.75rem; border-radius: 8px; }
+    .search-bar input:focus { outline: none; border-color: var(--green-500); }
+    .chart-container { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; margin-bottom: 1.5rem; }
+    .chart-container canvas { max-height: 250px; }
+    .tabs { display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap; }
+    .tab { padding: 0.5rem 1rem; border: 1px solid var(--border); border-radius: 8px; background: transparent; color: var(--text-muted); cursor: pointer; font-size: 0.85rem; }
+    .tab.active { background: rgba(52,211,153,0.1); border-color: var(--green-500); color: var(--green-300); }
+    .tab:hover { border-color: var(--green-500); }
+    @media (max-width: 600px) { .sa-grid { grid-template-columns: repeat(2, 1fr); } }
+  </style>
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="/" class="logo">CONTRAK.IO</a>
+      <button class="nav-toggle" aria-label="Open menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="nav-links">
+        <li><a href="/dashboard">Dashboard</a></li>
+        <li><a href="/products">Products</a></li>
+        <li><a href="/orders-admin">Orders</a></li>
+        <li><a href="/sales-analytics">Analytics</a></li>
+        <li><a href="/super-admin" style="color:var(--green-300);font-weight:600;">Super Admin</a></li>
+        <li><a href="/profile">Profile</a></li>
+        <li><button id="logoutBtn" class="btn btn-outline">Log out</button></li>
+      </ul>
+    </nav>
+  </header>
+
+  <div class="container">
+    <div id="alertContainer"></div>
+
+    <h1 style="color:var(--green-100);margin-bottom:0.25rem;">Super Admin</h1>
+    <p style="color:var(--text-muted);margin-bottom:1.5rem;">Site-wide overview and user management</p>
+
+    <div id="loading">
+      <div style="display:flex;align-items:center;justify-content:center;padding:4rem;">
+        <div class="spinner"></div>
+      </div>
+    </div>
+
+    <div id="dashboardContent" style="display:none;">
+
+      <!-- Stats Cards -->
+      <div class="sa-grid" id="statsCards"></div>
+
+      <!-- Signups Chart -->
+      <div class="chart-container">
+        <h3 style="color:var(--green-100);margin-bottom:0.75rem;">Daily Signups (30 days)</h3>
+        <canvas id="signupChart"></canvas>
+      </div>
+
+      <!-- Users -->
+      <div class="sa-section">
+        <h2>Users</h2>
+        <div class="search-bar">
+          <input type="text" id="userSearch" placeholder="Search by email or UID..." oninput="filterUsers()">
+          <div class="tabs">
+            <button class="tab active" data-filter="all" onclick="setFilter('all')">All</button>
+            <button class="tab" data-filter="basic" onclick="setFilter('basic')">Basic</button>
+            <button class="tab" data-filter="pro" onclick="setFilter('pro')">Pro</button>
+            <button class="tab" data-filter="super_admin" onclick="setFilter('super_admin')">Super Admins</button>
+          </div>
+        </div>
+        <div class="sa-table-wrap">
+          <table class="sa-table">
+            <thead>
+              <tr>
+                <th>Email</th>
+                <th>Plan</th>
+                <th>Role</th>
+                <th>Created</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="usersBody"></tbody>
+          </table>
+        </div>
+        <p id="usersCount" style="color:var(--text-muted);font-size:0.85rem;margin-top:0.5rem;"></p>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+  <script>
+    let allUsers = [];
+    let currentFilter = 'all';
+    let chartInstance = null;
+
+    async function checkAuth() {
+      try {
+        const r = await fetch('/api/auth/is-super', { credentials: 'include' });
+        if (!r.ok) { window.location.href = '/login'; return; }
+        const d = await r.json();
+        if (!d.superAdmin) { window.location.href = '/dashboard'; return; }
+        loadDashboard();
+      } catch (e) { window.location.href = '/login'; }
+    }
+
+    async function loadDashboard() {
+      try {
+        const [statsRes, usersRes] = await Promise.all([
+          fetch('/api/admin/dashboard', { credentials: 'include' }),
+          fetch('/api/admin/users', { credentials: 'include' })
+        ]);
+        if (!statsRes.ok || !usersRes.ok) throw new Error('Failed to load');
+
+        const statsData = await statsRes.json();
+        const usersData = await usersRes.json();
+        allUsers = usersData.users || [];
+
+        renderStats(statsData.stats);
+        renderChart(statsData.stats);
+        renderUsers();
+
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('dashboardContent').style.display = 'block';
+      } catch (e) {
+        document.getElementById('loading').innerHTML = '<p style="color:#EF4444;text-align:center;">Failed to load dashboard</p>';
+      }
+    }
+
+    function renderStats(stats) {
+      const cards = [
+        { label: 'Users', value: stats.users.total, sub: `${stats.users.plans.basic || 0} basic / ${stats.users.plans.pro || 0} pro` },
+        { label: 'Ebooks', value: stats.ebooks },
+        { label: 'Products', value: stats.products },
+        { label: 'Pages', value: stats.pages },
+        { label: 'Orders', value: stats.orders.total, sub: `${stats.orders.paid} paid` },
+        { label: 'Revenue', value: formatCurrency(stats.orders.revenue), sub: stats.orders.paid + ' paid orders' },
+        { label: 'Contracts', value: stats.contracts },
+        { label: 'Media', value: stats.media },
+        { label: 'Articles', value: stats.articles },
+        { label: 'Courses', value: stats.courses },
+        { label: 'Coupons', value: stats.coupons },
+        { label: 'Reviews', value: stats.reviews }
+      ];
+
+      document.getElementById('statsCards').innerHTML = cards.map(c => `
+        <div class="sa-card">
+          <div class="label">${c.label}</div>
+          <div class="value">${c.value}</div>
+          ${c.sub ? '<div class="sub">' + c.sub + '</div>' : ''}
+        </div>
+      `).join('');
+    }
+
+    function renderChart(stats) {
+      const ctx = document.getElementById('signupChart').getContext('2d');
+      if (chartInstance) chartInstance.destroy();
+
+      const labels = stats.dailySignups.map(d => d.date.slice(5));
+      const data = stats.dailySignups.map(d => d.count);
+
+      chartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Signups',
+            data,
+            backgroundColor: 'rgba(52,211,153,0.3)',
+            borderColor: 'rgba(52,211,153,0.8)',
+            borderWidth: 1,
+            borderRadius: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { color: '#6B7280' }, grid: { color: 'rgba(75,85,99,0.2)' } },
+            y: { beginAtZero: true, ticks: { color: '#6B7280', stepSize: 1 }, grid: { color: 'rgba(75,85,99,0.2)' } }
+          }
+        }
+      });
+    }
+
+    function renderUsers() {
+      const filtered = allUsers.filter(u => {
+        const search = (document.getElementById('userSearch').value || '').toLowerCase();
+        const matchSearch = !search || (u.email && u.email.toLowerCase().includes(search)) || (u.uid && u.uid.toLowerCase().includes(search));
+        let matchFilter = true;
+        if (currentFilter === 'basic') matchFilter = u.plan === 'basic';
+        else if (currentFilter === 'pro') matchFilter = u.plan === 'pro';
+        else if (currentFilter === 'super_admin') matchFilter = u.role === 'super_admin';
+        return matchSearch && matchFilter;
+      });
+
+      document.getElementById('usersBody').innerHTML = filtered.map(u => `
+        <tr>
+          <td>${escapeHtml(u.email || '-')}${u.uid ? '<br><span style="font-size:0.75rem;color:var(--text-muted);">' + escapeHtml(u.uid) + '</span>' : ''}</td>
+          <td><span class="badge-plan ${u.plan}">${(u.plan || 'basic').toUpperCase()}</span></td>
+          <td><span class="badge-role ${u.role === 'super_admin' ? 'super' : 'user'}">${u.role || 'user'}</span></td>
+          <td style="font-size:0.8rem;color:var(--text-muted);">${u.createdAt ? new Date(u.createdAt).toLocaleDateString() : '-'}</td>
+          <td>
+            <select class="plan-select" data-uid="${u.id || u.uid}" onchange="changePlan(this)">
+              <option value="basic" ${u.plan === 'basic' ? 'selected' : ''}>Basic</option>
+              <option value="pro" ${u.plan === 'pro' ? 'selected' : ''}>Pro</option>
+            </select>
+          </td>
+        </tr>
+      `).join('');
+
+      document.getElementById('usersCount').textContent = `${filtered.length} / ${allUsers.length} users`;
+    }
+
+    function filterUsers() { renderUsers(); }
+
+    function setFilter(filter) {
+      currentFilter = filter;
+      document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.filter === filter));
+      renderUsers();
+    }
+
+    async function changePlan(select) {
+      const uid = select.dataset.uid;
+      const plan = select.value;
+      select.disabled = true;
+      try {
+        const r = await fetch('/api/admin/users/set-plan', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ uid, plan })
+        });
+        if (r.ok) {
+          showAlert('success', 'Plan updated to ' + plan.toUpperCase());
+          const u = allUsers.find(x => (x.id || x.uid) === uid);
+          if (u) u.plan = plan;
+        } else {
+          const e = await r.json();
+          showAlert('error', e.error || 'Failed');
+          select.value = u.plan;
+        }
+      } catch (e) {
+        showAlert('error', 'Error updating plan');
+      }
+      select.disabled = false;
+    }
+
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    function formatCurrency(amount) {
+      return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'EUR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
+    }
+
+    function showAlert(type, msg) {
+      const container = document.getElementById('alertContainer');
+      const div = document.createElement('div');
+      div.className = 'alert alert-' + type;
+      div.textContent = msg;
+      container.appendChild(div);
+      setTimeout(() => div.remove(), 4000);
+    }
+
+    // Logout
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+      await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+      window.location.href = '/login';
+    });
+
+    checkAuth();
+  </script>
+</body>
+</html>

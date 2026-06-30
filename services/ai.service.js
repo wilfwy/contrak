@@ -60,44 +60,44 @@ async function generatePageFromPrompt(prompt, context) {
 
   const sectionsWanted = (context && context.sections_wanted) || ['hero','features','testimonials','cta','faq'];
   const tone = (context && context.tone) || 'professional';
-  const language = (context && context.language) || 'fr';
+  const language = (context && context.language) || 'en';
   const productName = (context && context.product_name) || '';
   const targetAudience = (context && context.target_audience) || '';
 
   let toneDesc = '';
-  if (tone === 'professional') toneDesc = 'Ton professionnel et credible, vocabulaire soutenu mais accessible.';
-  else if (tone === 'casual') toneDesc = 'Ton detendu et accessible, comme une conversation entre amis.';
-  else if (tone === 'inspirational') toneDesc = 'Ton inspirant et motivant, qui pousse a l action.';
-  else if (tone === 'urgent') toneDesc = 'Ton direct et urgent, qui cree un sentiment d urgence.';
+  if (tone === 'professional') toneDesc = 'Professional and credible tone, sophisticated yet accessible vocabulary.';
+  else if (tone === 'casual') toneDesc = 'Relaxed and approachable tone, like a conversation between friends.';
+  else if (tone === 'inspirational') toneDesc = 'Inspiring and motivating tone that drives action.';
+  else if (tone === 'urgent') toneDesc = 'Direct and urgent tone that creates a sense of urgency.';
 
   let langInstruction = '';
-  if (language === 'fr') langInstruction = 'Genere tout le contenu en francais. Utilise un francais naturel et fluide.';
-  else if (language === 'en') langInstruction = 'Generate all content in English. Use natural, fluent English.';
+  if (language === 'en') langInstruction = 'Generate all content in English. Use natural, fluent English.';
+  else if (language === 'fr') langInstruction = 'Generer tout le contenu en francais. Utilisez un francais naturel et fluide.';
   else if (language === 'es') langInstruction = 'Genera todo el contenido en espanol. Usa espanol natural y fluido.';
 
-  const systemPrompt = `Tu es un expert en copywriting et creation de landing pages haute conversion.
+  const systemPrompt = `You are an expert in copywriting and high-conversion landing page creation.
 
-Genere une landing page complete au format JSON. Contenu 100% authentique et persuasif, jamais de Lorem ipsum ou de placeholders.
+Generate a complete landing page in JSON format. 100% authentic and persuasive content, never Lorem ipsum or placeholders.
 
-REGLES STRICTES :
-- Contenu 100% authentique et specifique au sujet, jamais de texte generique
-- Chaque section doit contenir du texte persuasif, oriente conversion
-- Structure AIDA : Attention → Interet → Desir → Action
-- Adapte le ton, le vocabulaire et le style a l audience decrite
-- Inclus des chiffres et des benefices concrets
+STRICT RULES:
+- 100% authentic content specific to the topic, never generic text
+- Each section must contain persuasive, conversion-oriented text
+- AIDA structure: Attention → Interest → Desire → Action
+- Adapt the tone, vocabulary, and style to the described audience
+- Include figures and concrete benefits
 - ${toneDesc}
 - ${langInstruction}
 - ${productName ? 'Nom du produit/marque : ' + productName : ''}
 - ${targetAudience ? 'Audience cible : ' + targetAudience : ''}
-- Genere des couleurs coherentes avec le type de page (ex: bien-etre = tons doux, tech = bleu/violet)
-- Le slug doit etre en francais (ou dans la langue choisie), en kebab-case
-- La description est une meta description SEO max 155 caracteres
+- Genere des couleurs coherentes avec le type de page (ex: wellness = tons doux, tech = bleu/violet)
+- The slug must be in English (or the chosen language), in kebab-case
+- The description is a meta description for SEO, max 155 characters
 
 FORMAT JSON A RETOURNER (structure exacte) :
 {
-  "title": "Titre accrocheur de la page",
-  "description": "Meta description SEO, max 155 caracteres",
-  "slug": "slug-en-kebab-case",
+  "title": "Catchy page title",
+  "description": "SEO meta description, max 155 characters",
+  "slug": "slug-in-kebab-case",
   "theme": {
     "background": "#hex",
     "textColor": "#hex",
@@ -108,25 +108,25 @@ FORMAT JSON A RETOURNER (structure exacte) :
 
 TYPES DE SECTIONS DISPONIBLES (choisis uniquement parmi ${JSON.stringify(sectionsWanted)}) :
 
-HERO: {"type":"hero","eyebrow":"Petit texte au-dessus du titre","headline":"Titre principal accrocheur, max 10 mots","subheadline":"Sous-titre benefice 1-2 phrases","cta_primary_text":"Texte bouton principal","cta_primary_url":"#","cta_secondary_text":"Texte bouton secondaire (optionnel)","social_proof_text":"+XXXX personnes ont deja...","layout":"centered","background":"dark","image":""}
+HERO: {"type":"hero","eyebrow":"Small text above the title","headline":"Catchy main headline, max 10 words","subheadline":"Benefit subheading 1-2 sentences","cta_primary_text":"Main button text","cta_primary_url":"#","cta_secondary_text":"Secondary button text (optional)","social_proof_text":"+XXXX people already...","layout":"centered","background":"dark","image":""}
 
-FEATURES: {"type":"features","headline":"Titre section benefices","subheadline":"Description courte","layout":"grid-3","background":"light","items":[{"icon":"1","title":"Titre du benefice","description":"Description concrete avec chiffres"}]}
+FEATURES: {"type":"features","headline":"Benefits section title","subheadline":"Short description","layout":"grid-3","background":"light","items":[{"icon":"1","title":"Benefit title","description":"Concrete description with figures"}]}
 
-CONTENT: {"type":"content","headline":"Titre","body":"Contenu HTML (paragraphes, listes ul/li autorisees)","layout":"centered","background":"light","image_placeholder":"Description de l image ideale"}
+CONTENT: {"type":"content","headline":"Title","body":"HTML content (paragraphs, ul/li lists allowed)","layout":"centered","background":"light","image_placeholder":"Description of the ideal image"}
 
-CTA: {"type":"cta","headline":"Titre appel a action","subheadline":"Phrase qui leve les dernieres hesitations","cta_primary_text":"Texte du bouton","cta_primary_url":"#","guarantee_text":"Satisfait ou rembourse 7 jours","urgency_text":"Offre valable jusqu a epuisement des stocks","background":"accent"}
+CTA: {"type":"cta","headline":"Call-to-action title","subheadline":"Phrase that removes final hesitations","cta_primary_text":"Button text","cta_primary_url":"#","guarantee_text":"Satisfied or refunded within 7 days","urgency_text":"Offer valid while stocks last","background":"accent"}
 
-TESTIMONIALS: {"type":"testimonials","headline":"Ce que disent nos clients","layout":"grid","background":"dark","items":[{"quote":"Temoignage realiste avec resultat concret","author":"Prenom N.","role":"Profession","stars":5,"result_highlight":"-8kg en 3 semaines"}]}
+TESTIMONIALS: {"type":"testimonials","headline":"What Our Clients Say","layout":"grid","background":"dark","items":[{"quote":"Realistic testimonial with concrete result","author":"First Name L.","role":"Profession","stars":5,"result_highlight":"-8kg in 3 weeks"}]}
 
-FAQ: {"type":"faq","headline":"Questions frequentes","background":"light","items":[{"question":"Question reelle","answer":"Reponse claire et rassurante"}]}
+FAQ: {"type":"faq","headline":"Frequently Asked Questions","background":"light","items":[{"question":"Real question","answer":"Clear and reassuring answer"}]}
 
-PROBLEM: {"type":"problem","headline":"Vous reconnaissez-vous ?","intro":"Phrase d empathie","pain_points":[{"text":"Point de douleur specifique"}],"transition":"Phrase de transition vers la solution","background":"light"}
+PROBLEM: {"type":"problem","headline":"Do You Recognize Yourself?","intro":"Empathy statement","pain_points":[{"text":"Specific pain point"}],"transition":"Transition phrase toward the solution","background":"light"}
 
-STATS: {"type":"stats","headline":"Chiffres cles","background":"dark","items":[{"value":"3 200+","label":"Clients satisfaits"}]}
+STATS: {"type":"stats","headline":"Key Figures","background":"dark","items":[{"value":"3,200+","label":"Satisfied Clients"}]}
 
 IMPORTANT : Retourne UNIQUEMENT le JSON valide, sans texte avant ou apres, sans balises markdown, sans code fences.`;
 
-  const fullPrompt = `${systemPrompt}\n\nDescription de la page : ${prompt}\n\nGenere la landing page :`;
+  const fullPrompt = `${systemPrompt}\n\nPage description: ${prompt}\n\nGenerate the landing page:`;
   const raw = await callGrok(fullPrompt, 4096);
   return parseAIJsonResponse(raw);
 }

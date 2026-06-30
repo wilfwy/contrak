@@ -39,7 +39,7 @@ async function checkBasicEbookLimit(req, res) {
   const count = await countUserEbooks(req.userId);
   if (count >= BASIC_EBOOK_LIMIT) {
     res.status(403).json({
-      error: `Limite atteinte pour le plan BASIC (${BASIC_EBOOK_LIMIT} ebooks max). Passez au plan PRO pour une création illimitée.`,
+      error: `Limit reached for the BASIC plan (${BASIC_EBOOK_LIMIT} ebooks max). Upgrade to PRO for unlimited creation.`,
       upgradeRequired: true
     });
     return false;
@@ -53,7 +53,7 @@ async function getSuggestions(req, res) {
     res.json({ suggestions });
   } catch (error) {
     console.error('Error getting ebook suggestions:', error);
-    res.status(500).json({ error: 'Erreur lors du chargement des suggestions' });
+    res.status(500).json({ error: 'Error loading suggestions' });
   }
 }
 
@@ -61,11 +61,11 @@ async function getAISuggestions(req, res) {
   try {
     const { topic } = req.body;
     if (!topic || !topic.trim()) {
-      return res.status(400).json({ error: 'Le sujet est requis' });
+      return res.status(400).json({ error: 'Topic is required' });
     }
 
     if (!hasAnthropicKey()) {
-      return res.status(503).json({ error: 'Service IA non disponible. Clé API Anthropic manquante.' });
+      return res.status(503).json({ error: 'AI service unavailable. Missing API key.' });
     }
 
     const suggestions = await generateAIEbookSuggestions(topic.trim());
@@ -73,7 +73,7 @@ async function getAISuggestions(req, res) {
     res.json({ suggestions });
   } catch (error) {
     console.error('Error getting AI ebook suggestions:', error);
-    res.status(500).json({ error: 'Erreur lors de la génération des suggestions IA' });
+    res.status(500).json({ error: 'Error generating AI suggestions' });
   }
 }
 
@@ -82,12 +82,12 @@ async function createFromVideo(req, res) {
     let { title, description, content, videoUrl } = req.body;
 
     if (!title && !videoUrl && !content) {
-      return res.status(400).json({ error: 'Fournissez un titre, une URL ou une transcription' });
+      return res.status(400).json({ error: 'Provide a title, URL, or transcription' });
     }
 
     if (!content && videoUrl) {
       if (!isSupportedVideoUrl(videoUrl)) {
-        return res.status(400).json({ error: 'URL non supportée. Utilisez YouTube, TikTok ou Instagram.' });
+        return res.status(400).json({ error: 'Unsupported URL. Use YouTube, TikTok, or Instagram.' });
       }
       const result = await transcribeFromUrl(videoUrl);
       content = result.transcription;
@@ -100,7 +100,7 @@ async function createFromVideo(req, res) {
     }
 
     if (!title) {
-      return res.status(400).json({ error: 'Le titre est requis' });
+      return res.status(400).json({ error: 'Title is required' });
     }
 
     const { filePath, ebookId, chapters } = await generateEbookFromVideo(
@@ -109,10 +109,10 @@ async function createFromVideo(req, res) {
     );
 
     await saveEbookRecord(req, { ebookId, title, type: 'video', chaptersData: chapters, source: 'video' });
-    res.json({ success: true, ebookId, title, message: 'Ebook créé avec succès' });
+    res.json({ success: true, ebookId, title, message: 'Ebook created successfully' });
   } catch (error) {
     console.error('Error creating ebook from video:', error);
-    res.status(500).json({ error: error.message || 'Erreur lors de la création de l\'ebook' });
+    res.status(500).json({ error: error.message || 'Error creating ebook' });
   }
 }
 
@@ -124,7 +124,7 @@ async function transcribeUrl(req, res) {
     }
 
     if (!isSupportedVideoUrl(url.trim())) {
-      return res.status(400).json({ error: 'URL non supportée. Utilisez YouTube, TikTok ou Instagram.' });
+      return res.status(400).json({ error: 'Unsupported URL. Use YouTube, TikTok, or Instagram.' });
     }
 
     const result = await transcribeFromUrl(url.trim());
@@ -132,14 +132,14 @@ async function transcribeUrl(req, res) {
     res.json(result);
   } catch (error) {
     console.error('Error transcribing URL:', error);
-    res.status(500).json({ error: error.message || 'Erreur lors de la transcription' });
+    res.status(500).json({ error: error.message || 'Error during transcription' });
   }
 }
 
 async function transcribeUpload(req, res) {
   try {
     if (!req.file) {
-      return res.status(400).json({ error: 'Aucun fichier vidéo reçu' });
+      return res.status(400).json({ error: 'No video file received' });
     }
 
     // Write buffer to temp file for transcription processing
@@ -155,7 +155,7 @@ async function transcribeUpload(req, res) {
     res.json(result);
   } catch (error) {
     console.error('Error transcribing upload:', error);
-    res.status(500).json({ error: error.message || 'Erreur lors de la transcription du fichier' });
+    res.status(500).json({ error: error.message || 'Error during transcription du fichier' });
   }
 }
 
@@ -164,7 +164,7 @@ async function createCustom(req, res) {
     const ebookData = req.body;
 
     if (!ebookData.title || !ebookData.chapters || !ebookData.chapters.length) {
-      return res.status(400).json({ error: 'Le titre et au moins un chapitre sont requis' });
+      return res.status(400).json({ error: 'Title and at least one chapter are required' });
     }
 
     if (!(await checkBasicEbookLimit(req, res))) return;
@@ -185,10 +185,10 @@ async function createCustom(req, res) {
       source: ebookData.chapters ? 'manual' : 'ai',
       author: ebookData.author
     });
-    res.json({ success: true, ebookId, title: ebookData.title, message: 'Ebook créé avec succès' });
+    res.json({ success: true, ebookId, title: ebookData.title, message: 'Ebook created successfully' });
   } catch (error) {
     console.error('Error creating custom ebook:', error);
-    res.status(500).json({ error: 'Erreur lors de la création de l\'ebook' });
+    res.status(500).json({ error: 'Error creating ebook' });
   }
 }
 
@@ -198,7 +198,7 @@ async function exportEbook(req, res) {
     const ebook = await getEbookByFileId(ebookId, req.userId);
 
     if (!ebook) {
-      return res.status(404).json({ error: 'Ebook introuvable' });
+      return res.status(404).json({ error: 'Ebook not found' });
     }
 
     const chapters = (ebook.chaptersData || []).map(function(ch) {
@@ -207,7 +207,7 @@ async function exportEbook(req, res) {
     });
 
     if (chapters.length === 0) {
-      return res.status(404).json({ error: 'Aucun contenu dans cet ebook' });
+      return res.status(404).json({ error: 'No content in this ebook' });
     }
 
     const filename = encodeURIComponent((ebook.title || 'ebook').replace(/[^a-zA-Z0-9]/g, '_')) + '.pdf';
@@ -229,7 +229,7 @@ async function exportEbook(req, res) {
   } catch (error) {
     console.error('Error exporting ebook:', error);
     if (!res.headersSent) {
-      res.status(500).json({ error: 'Erreur lors de l\'export de l\'ebook' });
+      res.status(500).json({ error: 'Error exporting ebook' });
     }
   }
 }
@@ -256,7 +256,7 @@ async function getEbookStats(req, res) {
     });
   } catch (error) {
     console.error('Error getting ebook stats:', error);
-    res.status(500).json({ error: 'Erreur serveur' });
+    res.status(500).json({ error: 'Server error' });
   }
 }
 
@@ -264,9 +264,9 @@ async function getEbookData(req, res) {
   try {
     const { ebookId } = req.params;
     const ebook = await getEbookByFileId(ebookId, req.userId);
-    if (!ebook) return res.status(404).json({ error: 'Ebook introuvable' });
+    if (!ebook) return res.status(404).json({ error: 'Ebook not found' });
 
-    const description = ebook.source === 'video' ? 'Créé à partir de votre vidéo' : 'Ebook personnalisé';
+    const description = ebook.source === 'video' ? 'Created from your video' : 'Custom ebook';
     res.json({
       ebook: {
         ebookId: ebook.ebookId,
@@ -282,7 +282,7 @@ async function getEbookData(req, res) {
     });
   } catch (error) {
     console.error('Error getting ebook data:', error);
-    res.status(500).json({ error: 'Erreur lors du chargement de l\'ebook' });
+    res.status(500).json({ error: 'Error loading ebook' });
   }
 }
 
@@ -292,7 +292,7 @@ async function listEbooks(req, res) {
     res.json({ ebooks });
   } catch (error) {
     console.error('Error listing ebooks:', error);
-    res.status(500).json({ error: 'Erreur lors du chargement des ebooks' });
+    res.status(500).json({ error: 'Error loading ebooks' });
   }
 }
 

@@ -4,7 +4,7 @@ const path = require('path');
 
 function formatCurrency(amount, currency) {
   try {
-    return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: currency || 'EUR' }).format(amount || 0);
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: currency || 'EUR' }).format(amount || 0);
   } catch {
     return `${amount || 0} ${currency || 'EUR'}`;
   }

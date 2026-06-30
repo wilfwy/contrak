@@ -36,7 +36,7 @@ async function verifyIdToken(idToken) {
     const decodedToken = await getAuth().verifyIdToken(idToken);
     return decodedToken;
   } catch (error) {
-    throw new Error('Token invalide');
+    throw new Error('Invalid token');
   }
 }
 
@@ -867,6 +867,100 @@ async function getSalesAnalytics(ownerId) {
   };
 }
 
+// ===== Super Admin =====
+
+async function listAllUsers() {
+  const snapshot = await getDb().collection('users').get();
+  const users = snapshot.docs.map(d => {
+    const data = d.data();
+    return {
+      id: d.id,
+      ...data,
+      createdAt: data.createdAt && typeof data.createdAt.toDate === 'function'
+        ? data.createdAt.toDate().toISOString()
+        : null
+    };
+  });
+  users.sort((a, b) => {
+    if (!a.createdAt) return 1;
+    if (!b.createdAt) return -1;
+    return b.createdAt.localeCompare(a.createdAt);
+  });
+  return users;
+}
+
+async function getSiteWideStats() {
+  const db = getDb();
+  const [
+    usersSnap, ebooksSnap, productsSnap, pagesSnap,
+    ordersSnap, contractsSnap, mediaSnap, couponsSnap,
+    coursesSnap, articlesSnap, reviewsSnap
+  ] = await Promise.all([
+    db.collection('users').get(),
+    db.collection('ebooks').get(),
+    db.collection('products').get(),
+    db.collection('pages').get(),
+    db.collection('orders').get(),
+    db.collection('contracts').get(),
+    db.collection('media').get(),
+    db.collection('coupons').get(),
+    db.collection('courses').get(),
+    db.collection('articles').get(),
+    db.collection('reviews').get()
+  ]);
+
+  // Revenue / order stats
+  let totalRevenue = 0;
+  let totalOrders = 0;
+  let paidOrders = 0;
+  const planCounts = { basic: 0, pro: 0 };
+  const roleCounts = { user: 0, super_admin: 0 };
+
+  usersSnap.forEach(d => {
+    const data = d.data();
+    planCounts[data.plan] = (planCounts[data.plan] || 0) + 1;
+    roleCounts[data.role] = (roleCounts[data.role] || 0) + 1;
+  });
+
+  ordersSnap.forEach(d => {
+    const o = d.data();
+    totalOrders++;
+    if (o.status === 'paid') paidOrders++;
+    totalRevenue += o.totalAmount || 0;
+  });
+
+  // 30-day daily signups
+  const signupBuckets = {};
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const key = d.toISOString().split('T')[0];
+    signupBuckets[key] = { date: key, count: 0 };
+  }
+  usersSnap.forEach(d => {
+    const data = d.data();
+    const ts = data.createdAt && typeof data.createdAt.toDate === 'function'
+      ? data.createdAt.toDate().toISOString().split('T')[0]
+      : null;
+    if (ts && signupBuckets[ts]) signupBuckets[ts].count++;
+  });
+
+  return {
+    users: { total: usersSnap.size, plans: planCounts, roles: roleCounts },
+    ebooks: ebooksSnap.size,
+    products: productsSnap.size,
+    pages: pagesSnap.size,
+    orders: { total: totalOrders, paid: paidOrders, revenue: totalRevenue },
+    contracts: contractsSnap.size,
+    media: mediaSnap.size,
+    coupons: couponsSnap.size,
+    courses: coursesSnap.size,
+    articles: articlesSnap.size,
+    reviews: reviewsSnap.size,
+    dailySignups: Object.values(signupBuckets)
+  };
+}
+
 module.exports = {
   verifyIdToken,
   createUser,
@@ -957,6 +1051,10 @@ module.exports = {
   getPageBySlug,
   updatePageById,
   deletePageById,
+
+  // Super Admin
+  listAllUsers,
+  getSiteWideStats,
 
   getDb,
   getAuth,

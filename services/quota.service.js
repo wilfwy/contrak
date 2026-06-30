@@ -101,7 +101,7 @@ function quotaMiddleware(feature) {
     const result = await checkQuota(req.userId, req.userPlan, feature);
     if (!result.allowed) {
       return res.status(403).json({
-        error: `Limite du plan BASIC atteinte pour ${feature} (${result.limit} max). Passez au PRO pour une utilisation illimitée.`,
+        error: `BASIC plan limit reached for ${feature} (${result.limit} max). Upgrade to PRO for unlimited use.`,
         upgradeRequired: true,
         usage: result.usage,
         limit: result.limit

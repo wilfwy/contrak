@@ -289,58 +289,58 @@
         <p class="sub">Describe the page you want in plain language.</p>
 
         <div class="prompt-chips">
-          <button onclick="fillPrompt('Landing page pour vendre un ebook sur la perte de poids naturelle, avec temoignages et appel a action')">Ebook perte de poids</button>
-          <button onclick="fillPrompt('Page de vente pour un programme coaching fitness en ligne 12 semaines, public cible hommes 25-40 ans')">Coaching fitness</button>
-          <button onclick="fillPrompt('Landing page pour une formation en ligne sur le marketing digital, avec benefices, statistiques et FAQ')">Formation marketing</button>
-          <button onclick="fillPrompt('Page de vente pour un programme de meditation et gestion du stress, tons doux et apaisants')">Bien-etre</button>
-          <button onclick="fillPrompt('Landing page pour un outil SaaS de gestion de projets pour freelances, design moderne bleu/violet')">SaaS freelance</button>
-          <button onclick="fillPrompt('Portfolio pour photographe professionnel specialise mariage, avec temoignages clients')">Portfolio photo</button>
+          <button onclick="fillPrompt('Landing page to sell an ebook on natural weight loss, with testimonials and call to action')">Ebook perte de poids</button>
+          <button onclick="fillPrompt('Sales page for a 12-week online fitness coaching program, target audience men 25-40')">Coaching fitness</button>
+          <button onclick="fillPrompt('Landing page for an online digital marketing course, with benefits, statistics and FAQ')">Formation marketing</button>
+          <button onclick="fillPrompt('Sales page for a meditation and stress management program, soft and soothing tones')">Wellness</button>
+          <button onclick="fillPrompt('Landing page for a SaaS project management tool for freelancers, modern blue/purple design')">SaaS freelance</button>
+          <button onclick="fillPrompt('Portfolio for a professional wedding photographer, with client testimonials')">Portfolio photo</button>
         </div>
 
-        <textarea id="aiPrompt" rows="4" placeholder="Decris ta page en quelques mots..."></textarea>
+        <textarea id="aiPrompt" rows="4" placeholder="Describe your page in a few words..."></textarea>
 
         <div class="wizard-actions" style="justify-content:space-between;">
           <button class="btn btn-outline" id="aiCancelBtn">Cancel</button>
-          <button class="btn btn-primary" id="aiNextBtn" disabled>Suivant →</button>
+          <button class="btn btn-primary" id="aiNextBtn" disabled>Next →</button>
         </div>
       </div>
 
       <!-- Step 2: Customize -->
       <div id="wizardStep2" class="wizard-step" style="display:none;">
-        <button onclick="wizardBack()" style="background:none;border:none;color:var(--green-400);cursor:pointer;font-size:0.85rem;margin-bottom:1rem;">← Retour</button>
-        <h3>Personnalise ta page</h3>
+        <button onclick="wizardBack()" style="background:none;border:none;color:var(--green-400);cursor:pointer;font-size:0.85rem;margin-bottom:1rem;">← Back</button>
+        <h3>Customize your page</h3>
 
-        <label>Nom du produit / marque (optionnel)</label>
-        <input type="text" id="wizProductName" placeholder="ex: FitPro, Mon Ebook Sante">
+        <label>Product name / brand (optional)</label>
+        <input type="text" id="wizProductName" placeholder="e.g. FitPro, My Health Ebook">
 
-        <label>Ton de la page</label>
+        <label>Page tone</label>
         <div class="tone-selector">
-          <button onclick="selectTone('professional')" id="tone-professional" class="active">Pro & Serie</button>
-          <button onclick="selectTone('casual')" id="tone-casual">Detendu</button>
-          <button onclick="selectTone('inspirational')" id="tone-inspirational">Inspirant</button>
+          <button onclick="selectTone('professional')" id="tone-professional" class="active">Professional</button>
+          <button onclick="selectTone('casual')" id="tone-casual">Casual</button>
+          <button onclick="selectTone('inspirational')" id="tone-inspirational">Inspirational</button>
           <button onclick="selectTone('urgent')" id="tone-urgent">Urgent</button>
         </div>
 
-        <label>Langue</label>
+        <label>Language</label>
         <select id="wizLanguage" style="width:100%;background:var(--dark);border:1px solid var(--border);color:var(--green-100);padding:0.6rem;border-radius:8px;margin-bottom:1rem;">
-          <option value="fr">Francais</option>
+          <option value="fr">French</option>
           <option value="en">English</option>
-          <option value="es">Espanol</option>
+          <option value="es">Spanish</option>
         </select>
 
-        <label>Sections a inclure</label>
+        <label>Sections to include</label>
         <div class="sections-checkboxes">
           <label><input type="checkbox" value="hero" checked disabled> Hero</label>
           <label><input type="checkbox" value="problem" id="sec-problem" checked> Problem</label>
-          <label><input type="checkbox" value="features" id="sec-features" checked> Benefices</label>
+          <label><input type="checkbox" value="features" id="sec-features" checked> Benefits</label>
           <label><input type="checkbox" value="stats" id="sec-stats"> Stats</label>
-          <label><input type="checkbox" value="testimonials" id="sec-testimonials" checked> Temoignages</label>
+          <label><input type="checkbox" value="testimonials" id="sec-testimonials" checked> Testimonials</label>
           <label><input type="checkbox" value="cta" id="sec-cta" checked> CTA</label>
           <label><input type="checkbox" value="faq" id="sec-faq"> FAQ</label>
         </div>
 
         <div class="wizard-actions">
-          <button class="ai-btn" id="aiGenerateSubmitBtn"><span id="aiBtnText">Generer ma page</span></button>
+          <button class="ai-btn" id="aiGenerateSubmitBtn"><span id="aiBtnText">Generate my page</span></button>
         </div>
       </div>
 
@@ -348,12 +348,12 @@
       <div id="wizardStep3" class="wizard-step" style="display:none;">
         <div class="wizard-generating">
           <div class="spinner"></div>
-          <p>L'IA construit ta page...</p>
+          <p>AI is building your page...</p>
           <div class="generation-steps">
-            <span id="genStep1" class="active">Analyse du brief</span>
-            <span id="genStep2" class="pending">Redaction du contenu...</span>
-            <span id="genStep3" class="pending">Mise en forme des sections...</span>
-            <span id="genStep4" class="pending">Generation des couleurs...</span>
+            <span id="genStep1" class="active">Analyzing brief</span>
+            <span id="genStep2" class="pending">Writing content...</span>
+            <span id="genStep3" class="pending">Formatting sections...</span>
+            <span id="genStep4" class="pending">Generating colors...</span>
           </div>
         </div>
       </div>
@@ -668,13 +668,13 @@
       var html = '';
 
       if (s.type === 'hero') {
-        html += '<div class="form-row"><div class="form-group"><label>Eyebrow</label><input type="text" value="' + esc(s.eyebrow || '') + '" onchange="sectionField(' + i + ',\'eyebrow\',this.value)" placeholder="NOUVEAUTE · EBOOK GRATUIT"></div></div>';
-        html += '<div class="form-row"><div class="form-group"><label>Headline *</label><input type="text" value="' + esc(s.headline || '') + '" onchange="sectionField(' + i + ',\'headline\',this.value)" placeholder="Titre principal accrocheur"></div></div>';
-        html += '<div class="form-row full"><div class="form-group"><label>Subheadline</label><textarea rows="2" onchange="sectionField(' + i + ',\'subheadline\',this.value)" placeholder="Sous-titre benefice">' + esc(s.subheadline || '') + '</textarea></div></div>';
-        html += '<div class="form-row"><div class="form-group"><label>CTA Principal</label><input type="text" value="' + esc(s.cta_primary_text || '') + '" onchange="sectionField(' + i + ',\'cta_primary_text\',this.value)" placeholder="Telecharger maintenant"></div>';
-        html += '<div class="form-group"><label>Lien CTA</label><input type="text" value="' + esc(s.cta_primary_url || '#') + '" onchange="sectionField(' + i + ',\'cta_primary_url\',this.value)" placeholder="#"></div></div>';
-        html += '<div class="form-row full"><div class="form-group"><label>Preuve sociale</label><input type="text" value="' + esc(s.social_proof_text || '') + '" onchange="sectionField(' + i + ',\'social_proof_text\',this.value)" placeholder="+3 200 lecteurs · Note 4.9/5"></div></div>';
-        html += '<div class="form-row"><div class="form-group"><label>Layout</label><select onchange="sectionField(' + i + ',\'layout\',this.value)"><option value="centered"' + (s.layout==='centered'?' selected':'') + '>Centre</option><option value="left"' + (s.layout==='left'?' selected':'') + '>Gauche</option><option value="split"' + (s.layout==='split'?' selected':'') + '>Split</option></select></div>';
+        html += '<div class="form-row"><div class="form-group"><label>Eyebrow</label><input type="text" value="' + esc(s.eyebrow || '') + '" onchange="sectionField(' + i + ',\'eyebrow\',this.value)" placeholder="NEW · FREE EBOOK"></div></div>';
+        html += '<div class="form-row"><div class="form-group"><label>Headline *</label><input type="text" value="' + esc(s.headline || '') + '" onchange="sectionField(' + i + ',\'headline\',this.value)" placeholder="Catchy main title"></div></div>';
+        html += '<div class="form-row full"><div class="form-group"><label>Subheadline</label><textarea rows="2" onchange="sectionField(' + i + ',\'subheadline\',this.value)" placeholder="Benefit sub-headline">' + esc(s.subheadline || '') + '</textarea></div></div>';
+        html += '<div class="form-row"><div class="form-group"><label>Primary CTA</label><input type="text" value="' + esc(s.cta_primary_text || '') + '" onchange="sectionField(' + i + ',\'cta_primary_text\',this.value)" placeholder="Download now"></div>';
+        html += '<div class="form-group"><label>CTA Link</label><input type="text" value="' + esc(s.cta_primary_url || '#') + '" onchange="sectionField(' + i + ',\'cta_primary_url\',this.value)" placeholder="#"></div></div>';
+        html += '<div class="form-row full"><div class="form-group"><label>Social proof</label><input type="text" value="' + esc(s.social_proof_text || '') + '" onchange="sectionField(' + i + ',\'social_proof_text\',this.value)" placeholder="+3,200 readers · Rating 4.9/5"></div></div>';
+        html += '<div class="form-row"><div class="form-group"><label>Layout</label><select onchange="sectionField(' + i + ',\'layout\',this.value)"><option value="centered"' + (s.layout==='centered'?' selected':'') + '>Centered</option><option value="left"' + (s.layout==='left'?' selected':'') + '>Left</option><option value="split"' + (s.layout==='split'?' selected':'') + '>Split</option></select></div>';
         html += '<div class="form-group"><label>Background</label><select onchange="sectionField(' + i + ',\'background\',this.value)"><option value="light"' + (s.background==='light'?' selected':'') + '>Light</option><option value="dark"' + (s.background==='dark'?' selected':'') + '>Dark</option><option value="accent"' + (s.background==='accent'?' selected':'') + '>Accent</option></select></div></div>';
 
       } else if (s.type === 'features') {
@@ -682,11 +682,11 @@
         html += '<div class="form-row full"><div class="form-group"><label>Items</label></div></div>';
         (s.items || []).forEach(function(item, j) {
           html += '<div class="editor-item-row"><div class="item-header"><span>' + (j+1) + '</span><button onclick="removeSectionItem(' + i + ',' + j + ')">✕</button></div>';
-          html += '<div class="form-row"><div class="form-group"><label>Titre</label><input type="text" value="' + esc(item.title || '') + '" onchange="sectionItemField(' + i + ',' + j + ',\'title\',this.value)"></div></div>';
+          html += '<div class="form-row"><div class="form-group"><label>Title</label><input type="text" value="' + esc(item.title || '') + '" onchange="sectionItemField(' + i + ',' + j + ',\'title\',this.value)"></div></div>';
           html += '<div class="form-row full"><div class="form-group"><label>Description</label><textarea rows="2" onchange="sectionItemField(' + i + ',' + j + ',\'description\',this.value)">' + esc(item.description || '') + '</textarea></div></div></div>';
         });
         html += '<button class="btn btn-small btn-outline" onclick="addSectionItem(' + i + ',\'features\')" style="width:100%;margin-bottom:0.5rem;">+ Add item</button>';
-        html += '<div class="form-row"><div class="form-group"><label>Columns</label><select onchange="sectionField(' + i + ',\'layout\',this.value)"><option value="grid-3"' + (s.layout==='grid-3'?' selected':'') + '>3 colonnes</option><option value="grid-2"' + (s.layout==='grid-2'?' selected':'') + '>2 colonnes</option></select></div>';
+        html += '<div class="form-row"><div class="form-group"><label>Columns</label><select onchange="sectionField(' + i + ',\'layout\',this.value)"><option value="grid-3"' + (s.layout==='grid-3'?' selected':'') + '>3 columns</option><option value="grid-2"' + (s.layout==='grid-2'?' selected':'') + '>2 columns</option></select></div>';
         html += '<div class="form-group"><label>Background</label><select onchange="sectionField(' + i + ',\'background\',this.value)"><option value="light"' + (s.background==='light'?' selected':'') + '>Light</option><option value="dark"' + (s.background==='dark'?' selected':'') + '>Dark</option></select></div></div>';
 
       } else if (s.type === 'testimonials') {
@@ -694,7 +694,7 @@
         (s.items || []).forEach(function(item, j) {
           html += '<div class="editor-item-row"><div class="item-header"><span>#' + (j+1) + '</span><button onclick="removeSectionItem(' + i + ',' + j + ')">✕</button></div>';
           html += '<div class="form-row full"><div class="form-group"><label>Quote</label><textarea rows="2" onchange="sectionItemField(' + i + ',' + j + ',\'quote\',this.value)">' + esc(item.quote || '') + '</textarea></div></div>';
-          html += '<div class="form-row"><div class="form-group"><label>Auteur</label><input type="text" value="' + esc(item.author || '') + '" onchange="sectionItemField(' + i + ',' + j + ',\'author\',this.value)"></div>';
+          html += '<div class="form-row"><div class="form-group"><label>Author</label><input type="text" value="' + esc(item.author || '') + '" onchange="sectionItemField(' + i + ',' + j + ',\'author\',this.value)"></div>';
           html += '<div class="form-group"><label>Role</label><input type="text" value="' + esc(item.role || '') + '" onchange="sectionItemField(' + i + ',' + j + ',\'role\',this.value)"></div></div></div>';
         });
         html += '<button class="btn btn-small btn-outline" onclick="addSectionItem(' + i + ',\'testimonials\')" style="width:100%;margin-bottom:0.5rem;">+ Add testimonial</button>';
@@ -703,10 +703,10 @@
       } else if (s.type === 'cta') {
         html += '<div class="form-row"><div class="form-group"><label>Headline</label><input type="text" value="' + esc(s.headline || '') + '" onchange="sectionField(' + i + ',\'headline\',this.value)"></div></div>';
         html += '<div class="form-row full"><div class="form-group"><label>Subheadline</label><textarea rows="2" onchange="sectionField(' + i + ',\'subheadline\',this.value)">' + esc(s.subheadline || '') + '</textarea></div></div>';
-        html += '<div class="form-row"><div class="form-group"><label>CTA Text</label><input type="text" value="' + esc(s.cta_primary_text || '') + '" onchange="sectionField(' + i + ',\'cta_primary_text\',this.value)" placeholder="Commencer maintenant"></div>';
-        html += '<div class="form-group"><label>Lien</label><input type="text" value="' + esc(s.cta_primary_url || '#') + '" onchange="sectionField(' + i + ',\'cta_primary_url\',this.value)"></div></div>';
-        html += '<div class="form-row full"><div class="form-group"><label>Garantie</label><input type="text" value="' + esc(s.guarantee_text || '') + '" onchange="sectionField(' + i + ',\'guarantee_text\',this.value)" placeholder="Satisfait ou rembourse 7 jours"></div></div>';
-        html += '<div class="form-row full"><div class="form-group"><label>Urgence</label><input type="text" value="' + esc(s.urgency_text || '') + '" onchange="sectionField(' + i + ',\'urgency_text\',this.value)" placeholder="Offre valable jusqu au..."></div></div>';
+        html += '<div class="form-row"><div class="form-group"><label>CTA Text</label><input type="text" value="' + esc(s.cta_primary_text || '') + '" onchange="sectionField(' + i + ',\'cta_primary_text\',this.value)" placeholder="Start now"></div>';
+        html += '<div class="form-group"><label>Link</label><input type="text" value="' + esc(s.cta_primary_url || '#') + '" onchange="sectionField(' + i + ',\'cta_primary_url\',this.value)"></div></div>';
+        html += '<div class="form-row full"><div class="form-group"><label>Guarantee</label><input type="text" value="' + esc(s.guarantee_text || '') + '" onchange="sectionField(' + i + ',\'guarantee_text\',this.value)" placeholder="Satisfied or refunded within 7 days"></div></div>';
+        html += '<div class="form-row full"><div class="form-group"><label>Urgency</label><input type="text" value="' + esc(s.urgency_text || '') + '" onchange="sectionField(' + i + ',\'urgency_text\',this.value)" placeholder="Offer valid until..."></div></div>';
         html += '<div class="form-row full"><div class="form-group"><label>Background</label><select onchange="sectionField(' + i + ',\'background\',this.value)"><option value="accent"' + (s.background==='accent'?' selected':'') + '>Accent</option><option value="dark"' + (s.background==='dark'?' selected':'') + '>Dark</option><option value="light"' + (s.background==='light'?' selected':'') + '>Light</option></select></div></div>';
 
       } else if (s.type === 'faq') {
@@ -721,8 +721,8 @@
 
       } else if (s.type === 'content') {
         html += '<div class="form-row"><div class="form-group"><label>Headline</label><input type="text" value="' + esc(s.headline || '') + '" onchange="sectionField(' + i + ',\'headline\',this.value)"></div></div>';
-        html += '<div class="form-row full"><div class="form-group"><label>Body (HTML)</label><textarea rows="4" onchange="sectionField(' + i + ',\'body\',this.value)" placeholder="Contenu HTML (paragraphes, listes)">' + esc(s.body || '') + '</textarea></div></div>';
-        html += '<div class="form-row"><div class="form-group"><label>Layout</label><select onchange="sectionField(' + i + ',\'layout\',this.value)"><option value="centered"' + (s.layout==='centered'?' selected':'') + '>Centre</option><option value="left"' + (s.layout==='left'?' selected':'') + '>Gauche</option></select></div>';
+        html += '<div class="form-row full"><div class="form-group"><label>Body (HTML)</label><textarea rows="4" onchange="sectionField(' + i + ',\'body\',this.value)" placeholder="HTML content (paragraphs, lists)">' + esc(s.body || '') + '</textarea></div></div>';
+        html += '<div class="form-row"><div class="form-group"><label>Layout</label><select onchange="sectionField(' + i + ',\'layout\',this.value)"><option value="centered"' + (s.layout==='centered'?' selected':'') + '>Centered</option><option value="left"' + (s.layout==='left'?' selected':'') + '>Left</option></select></div>';
         html += '<div class="form-group"><label>Background</label><select onchange="sectionField(' + i + ',\'background\',this.value)"><option value="light"' + (s.background==='light'?' selected':'') + '>Light</option><option value="dark"' + (s.background==='dark'?' selected':'') + '>Dark</option></select></div></div>';
 
       } else if (s.type === 'problem') {
@@ -748,7 +748,7 @@
       }
 
       // Regenerate button
-      html += '<button class="btn-ai-regen" onclick="regenerateSection(' + i + ')" id="regenBtn' + i + '"><span id="regenText' + i + '">✨ Regenerer avec IA</span></button>';
+      html += '<button class="btn-ai-regen" onclick="regenerateSection(' + i + ')" id="regenBtn' + i + '"><span id="regenText' + i + '">✨ Regenerate with AI</span></button>';
 
       return html;
     }
@@ -951,7 +951,7 @@
         showToast('error', e.message);
       } finally {
         btn.disabled = false;
-        txt.textContent = '✨ Regenerer avec IA';
+        txt.textContent = '✨ Regenerate with AI';
       }
     }
 

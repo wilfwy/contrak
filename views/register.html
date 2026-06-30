@@ -91,11 +91,11 @@
       }
 
       try {
-        // Créer l'utilisateur avec Firebase Auth
+        // Create user with Firebase Auth
         const userCredential = await auth.createUserWithEmailAndPassword(email, password);
         const idToken = await userCredential.user.getIdToken();
 
-        // Enregistrer l'utilisateur dans Firestore via le serveur
+        // Save user in Firestore via server
         const response = await fetch('/api/auth/register', {
           method: 'POST',
           headers: {
@@ -105,7 +105,7 @@
           body: JSON.stringify({ email, password: '***' })
         });
 
-        // Se connecter automatiquement
+        // Auto-login after registration
         const loginResponse = await fetch('/api/auth/login', {
           method: 'POST',
           headers: {

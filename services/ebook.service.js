@@ -21,35 +21,35 @@ const DEFAULT_DESIGN = {
 const ebookSuggestions = [
   {
     id: 1,
-    title: 'Guide du Freelance Démarrant',
-    description: 'Tout ce que vous devez savoir pour commencer votre carrière de freelance',
+    title: 'Freelance Starter Guide',
+    description: 'Everything you need to know to start your freelance career',
     chapters: [
-      'Introduction au Freelancing',
-      'Fixer vos tarifs',
-      'Trouver vos premiers clients',
-      'Gérer votre activité'
+      'Introduction to Freelancing',
+      'Setting Your Rates',
+      'Finding Your First Clients',
+      'Managing Your Business'
     ]
   },
   {
     id: 2,
-    title: 'Productivité pour Développeurs',
-    description: 'Astuces et outils pour coder plus efficacement',
+    title: 'Productivity for Developers',
+    description: 'Tips and tools to code more efficiently',
     chapters: [
-      'Gestion du temps',
-      'Outils essentiels',
-      'Bonnes pratiques de code',
-      'Apprentissage continu'
+      'Time Management',
+      'Essential Tools',
+      'Code Best Practices',
+      'Continuous Learning'
     ]
   },
   {
     id: 3,
-    title: 'Marketing Digital Basique',
-    description: 'Les fondamentaux du marketing en ligne pour entrepreneurs',
+    title: 'Basic Digital Marketing',
+    description: 'The fundamentals of online marketing for entrepreneurs',
     chapters: [
-      'SEO et contenu',
-      'Réseaux sociaux',
-      'Email marketing',
-      'Analyse des résultats'
+      'SEO and Content',
+      'Social Media',
+      'Email Marketing',
+      'Results Analysis'
     ]
   }
 ];
@@ -118,7 +118,7 @@ function renderCoverPage(doc, title, description, author, d) {
   if (author) {
     doc.fillColor(d.coverAccent);
     doc.fontSize(11).font('Helvetica');
-    doc.text('Par ' + author, cx, ph - 200, { align: 'center' });
+    doc.text('By ' + author, cx, ph - 200, { align: 'center' });
   }
 
   doc.fillColor(d.coverAccent).opacity(0.15);
@@ -137,7 +137,7 @@ function renderTocPage(doc, chapters, d) {
   const pw = doc.page.width, cx = pw / 2;
 
   doc.fontSize(20).font('Helvetica-Bold').fillColor(d.tocTitle);
-  doc.text('Table des matières', cx, 70, { align: 'center' });
+  doc.text('Table of Contents', cx, 70, { align: 'center' });
 
   doc.fillColor(d.tocAccent);
   doc.rect(cx - 50, doc.y + 6, 100, 2).fill();
@@ -174,7 +174,7 @@ function renderChapterPage(doc, chapter, index, totalChapters, d) {
 
   doc.fillColor(d.chapterLabel);
   doc.fontSize(10).font('Helvetica');
-  doc.text('CHAPITRE ' + (index + 1), m, 18);
+  doc.text('CHAPTER ' + (index + 1), m, 18);
 
   doc.fillColor(d.chapterTitle);
   doc.fontSize(20).font('Helvetica-Bold');
@@ -187,7 +187,7 @@ function renderChapterPage(doc, chapter, index, totalChapters, d) {
   doc.rect(0, doc.y + 12, pw, 1).fill();
   doc.opacity(1);
 
-  const content = chapter.content || 'Contenu du chapitre...';
+  const content = chapter.content || 'Chapter content...';
   doc.fillColor(d.bodyText);
   doc.fontSize(11).font('Helvetica');
   doc.text(content, m, doc.y + 20, {
@@ -245,20 +245,20 @@ async function renderEbookPdf(doc, title, description, author, chapters, design)
 
 async function generateAIEbookSuggestions(topic) {
   if (!hasGrokKey()) {
-    throw new Error('Clé API IA non configurée');
+    throw new Error('AI API key not configured');
   }
 
   const content = await callGrok(
     `Output ONLY valid JSON array. No markdown or explanation.
 
-Génère 3 suggestions d'ebooks sur le thème: "${topic}".
+Generate 3 ebook suggestions on the topic: "${topic}".
 Format EXACT: [{"title":"...","description":"...","chapters":["...","...","...","..."]},...]`,
     1024
   );
 
   const suggestions = parseAIJsonResponse(content);
   if (!Array.isArray(suggestions)) {
-    throw new Error('Format de réponse IA invalide');
+    throw new Error('Invalid AI response format');
   }
   return suggestions;
 }
@@ -267,7 +267,7 @@ async function structureVideoIntoChapters(content, title) {
   const raw = await callGrok(
     `Output ONLY valid JSON. No markdown or explanation.
 
-Tu es un éditeur d'ebooks professionnel. À partir de cette transcription, crée un ebook structuré avec 3 à 5 chapitres cohérents.
+You are a professional ebook editor. From this transcription, create a structured ebook with 3 to 5 coherent chapters.
 Titre de l'ebook: "${title}"
 
 Format EXACT: {"chapters":[{"title":"...","content":"... (300-500 mots)"}]}
@@ -284,12 +284,12 @@ ${content}`,
   if (Array.isArray(parsed)) {
     return parsed;
   }
-  throw new Error('Impossible de structurer le contenu vidéo');
+  throw new Error('Unable to structure the video content');
 }
 
 async function generateChapterContent(chapterTitle, ebookTitle) {
   return callGrok(
-    `Écris un chapitre d'ebook d'environ 300 mots sur le thème: "${chapterTitle}" pour l'ebook "${ebookTitle}". Rédige de façon professionnelle et informative. Ne mets pas de titre en en-tête, seulement le contenu.`,
+    `Write an ebook chapter of about 300 words on the topic: "${chapterTitle}" pour l'ebook "${ebookTitle}". Write in a professional and informative manner. Do not include a heading, only the content.`,
     1024
   );
 }
@@ -299,18 +299,18 @@ async function generateEbookFromVideo(videoData, options = {}) {
   let chapters = [];
 
   if (videoData.content && allowAI && hasGrokKey()) {
-    chapters = await structureVideoIntoChapters(videoData.content, videoData.title || 'Ebook Généré');
+    chapters = await structureVideoIntoChapters(videoData.content, videoData.title || 'Generated Ebook');
   } else if (videoData.content) {
     chapters = [{ title: 'Introduction', content: videoData.content }];
   } else {
-    chapters = [{ title: 'Introduction', content: 'Contenu extrait de la vidéo...' }];
+    chapters = [{ title: 'Introduction', content: 'Content extracted from the video...' }];
   }
 
   const { doc, writeStream, outputPath, ebookId } = createPdfWriter();
   await renderEbookPdf(
     doc,
-    videoData.title || 'Ebook Généré',
-    videoData.description || 'Créé à partir de votre vidéo',
+    videoData.title || 'Generated Ebook',
+    videoData.description || 'Created from your video',
     'Contrak AI',
     chapters,
     videoData.design
@@ -323,7 +323,7 @@ async function generateEbookChapters(title, description) {
   const raw = await callGrok(
     `Output ONLY valid JSON. No markdown or explanation.
 
-Tu es un auteur d'ebooks professionnel. Crée 4 chapitres pour un ebook intitulé "${title}"${description ? ' sur le thème: "' + description + '"' : ''}.
+You are a professional ebook author. Create 4 chapters for an ebook titled "${title}"${description ? ' on the topic: "' + description + '"' : ''}.
 
 Format EXACT: {"chapters":[{"title":"...","content":"300-500 mots de contenu détaillé et professionnel"}]}
 
@@ -338,7 +338,7 @@ Chaque chapitre doit avoir un titre accrocheur et un contenu substantiel, inform
   if (Array.isArray(parsed)) {
     return parsed;
   }
-  throw new Error('Impossible de générer les chapitres');
+  throw new Error('Unable to generate chapters');
 }
 
 async function generateCustomEbook(ebookData, options = {}) {
@@ -386,7 +386,7 @@ async function generateProductVersionPdf(version, product) {
     product.title || 'Product',
     'Version: ' + (version.versionLabel || '1.0'),
     null,
-    chapters.length > 0 ? chapters : [{ title: 'Contenu à venir', content: 'Cette version ne contient pas encore de contenu.' }],
+    chapters.length > 0 ? chapters : [{ title: 'Content coming soon', content: 'This version does not contain any content yet.' }],
     payload.design
   );
   await waitForPdf(writeStream);

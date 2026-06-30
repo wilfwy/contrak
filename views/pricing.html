@@ -10,7 +10,7 @@
   <header>
     <nav>
       <a href="/" class="logo">CONTRAK.IO</a>
-      <button class="nav-toggle" aria-label="Ouvrir le menu" aria-expanded="false">
+      <button class="nav-toggle" aria-label="Open menu" aria-expanded="false">
         <span></span>
         <span></span>
         <span></span>
@@ -103,7 +103,7 @@
         if (response.ok) {
           const data = await response.json();
           if (data.valid) {
-            // Afficher le bouton upgrade seulement si pas déjà PRO
+            // Show upgrade button only if not already PRO
             if (data.user.plan === 'basic') {
               document.getElementById('upgradeBtn').style.display = 'block';
             } else {

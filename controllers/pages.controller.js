@@ -89,11 +89,11 @@ async function aiGenerate(req, res) {
   try {
     const { prompt, product_name, target_audience, tone, language, sections_wanted } = req.body;
     if (!prompt || !prompt.trim()) {
-      return res.status(400).json({ error: 'La description est requise' });
+      return res.status(400).json({ error: 'Description is required' });
     }
 
     if (!hasAnthropicKey()) {
-      return res.status(503).json({ error: 'Service IA non disponible. Clé API Anthropic manquante.' });
+      return res.status(503).json({ error: 'AI service unavailable. Missing Anthropic API key.' });
     }
 
     const context = {
@@ -109,7 +109,7 @@ async function aiGenerate(req, res) {
     res.json({ page: result });
   } catch (error) {
     console.error('aiGenerate error:', error);
-    res.status(500).json({ error: error.message || 'Erreur lors de la génération IA' });
+    res.status(500).json({ error: error.message || 'Error during AI generation' });
   }
 }
 
@@ -117,16 +117,16 @@ async function regenerateSection(req, res) {
   try {
     const { section_type, prompt, page_context } = req.body;
     if (!section_type) {
-      return res.status(400).json({ error: 'Type de section requis' });
+      return res.status(400).json({ error: 'Section type is required' });
     }
     if (!hasAnthropicKey()) {
-      return res.status(503).json({ error: 'Service IA non disponible.' });
+      return res.status(503).json({ error: 'AI service unavailable.' });
     }
 
     const { callGrok, parseAIJsonResponse } = require('../services/grok.service');
 
-    const systemPrompt = `Tu es un expert en copywriting.
-Genere uniquement une section de type "${section_type}" pour une landing page.
+    const systemPrompt = `You are a copywriting expert.
+Generate only a section of type "${section_type}" pour une landing page.
 
 ${
   section_type === 'hero' ? `Retourne ce JSON exact :
@@ -134,27 +134,27 @@ ${
   section_type === 'features' ? `Retourne ce JSON exact :
 {"type":"features","headline":"...","subheadline":"","layout":"grid-3","background":"light","items":[{"icon":"1","title":"...","description":"..."}]}` :
   section_type === 'testimonials' ? `Retourne ce JSON exact :
-{"type":"testimonials","headline":"Ce que disent nos clients","layout":"grid","background":"dark","items":[{"quote":"...","author":"...","role":"...","stars":5,"result_highlight":"..."}]}` :
+{"type":"testimonials","headline":"What Our Clients Say","layout":"grid","background":"dark","items":[{"quote":"...","author":"...","role":"...","stars":5,"result_highlight":"..."}]}` :
   section_type === 'cta' ? `Retourne ce JSON exact :
 {"type":"cta","headline":"...","subheadline":"...","cta_primary_text":"...","cta_primary_url":"#","guarantee_text":"...","urgency_text":"","background":"accent"}` :
   section_type === 'faq' ? `Retourne ce JSON exact :
-{"type":"faq","headline":"Questions frequentes","background":"light","items":[{"question":"...","answer":"..."}]}` :
+{"type":"faq","headline":"Frequently Asked Questions","background":"light","items":[{"question":"...","answer":"..."}]}` :
   section_type === 'problem' ? `Retourne ce JSON exact :
-{"type":"problem","headline":"Vous reconnaissez-vous ?","intro":"...","pain_points":[{"text":"..."}],"transition":"...","background":"light"}` :
+{"type":"problem","headline":"Do You Recognize Yourself?","intro":"...","pain_points":[{"text":"..."}],"transition":"...","background":"light"}` :
   section_type === 'stats' ? `Retourne ce JSON exact :
-{"type":"stats","headline":"Chiffres cles","background":"dark","items":[{"value":"...","label":"..."}]}` :
+{"type":"stats","headline":"Key Figures","background":"dark","items":[{"value":"...","label":"..."}]}` :
   `Retourne un objet JSON avec type:"${section_type}" et les champs appropries`
 }
 
-Contenu authentique et persuasif. ${prompt ? 'Contexte : ' + prompt : ''}
-Retourne UNIQUEMENT le JSON, sans texte avant/apres.`;
+Authentic and persuasive content. ${prompt ? 'Contexte : ' + prompt : ''}
+Return ONLY the JSON, no text before or after.`;
 
     const raw = await callGrok(systemPrompt, 1500);
     const data = parseAIJsonResponse(raw);
     res.json({ section: data });
   } catch (error) {
     console.error('regenerateSection error:', error);
-    res.status(500).json({ error: error.message || 'Erreur lors de la regeneration' });
+    res.status(500).json({ error: error.message || 'Error during regeneration' });
   }
 }
 

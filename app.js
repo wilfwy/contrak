@@ -21,6 +21,7 @@ const publicRoutes = require('./routes/public.routes');
 const reviewsRoutes = require('./routes/reviews.routes');
 const seoController = require('./controllers/seo.controller');
 const blogRoutes = require('./routes/blog.routes');
+const superAdminRoutes = require('./routes/super-admin.routes');
 const { getProductBySlug } = require('./services/firebase.service');
 
 const app = express();
@@ -78,6 +79,7 @@ app.use('/api/ai', aiRoutes);
 app.use('/api/reviews', reviewsRoutes);
 app.use('/api/public', publicRoutes);
 app.use('/api/blog', blogRoutes);
+app.use('/api/admin', superAdminRoutes);
 
 
 // Routes protégées
@@ -120,6 +122,10 @@ app.get('/orders-admin', (req, res) => {
 
 app.get('/sales-analytics', (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'sales-analytics.html'));
+});
+
+app.get('/super-admin', (req, res) => {
+  res.sendFile(path.join(__dirname, 'views', 'super-admin.html'));
 });
 
 app.get('/coupons', (req, res) => {
